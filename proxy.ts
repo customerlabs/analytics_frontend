@@ -1,64 +1,132 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getIronSession } from "iron-session";
+import { sessionOptions } from "@/lib/auth/session-config";
+import type { SessionData } from "@/lib/keycloak/types";
+import { authRoutes } from "@/config/routes";
 
-import {
-  DEFAULT_LOGIN_REDIRECT,
-  apiAuthPrefix,
-  authRoutes,
-  protectedRoutes,
-} from "@/config/routes";
+const WORKSPACE_COOKIE = "analytics_workspace";
+
+// Routes that require workspace context (will add ?ws= param)
+const workspaceRoutes = ["/", "/accounts", "/settings"];
 
 export async function proxy(request: NextRequest) {
   const { nextUrl } = request;
-
-  // TODO: Integrate with your auth solution to check login status
-  // For now, this assumes no auth integration - update when auth is configured
-  const isLoggedIn = false;
+  const { pathname, searchParams } = nextUrl;
 
   // Get the base URL from environment variable or use the request origin
-  const baseUrl = process.env.NEXTAUTH_URL || nextUrl.origin;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || nextUrl.origin;
 
-  const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-  const isProtectedRoute = protectedRoutes.includes(nextUrl.pathname);
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-
-  // Check and set default language if not set
-  const cookieStore = await cookies();
-  const languageCookie = cookieStore.get("language");
-
-  if (!languageCookie) {
-    const response = NextResponse.next();
-    // Set cookie to expire in 1 year
-    const oneYearFromNow = new Date();
-    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-
-    response.cookies.set("language", "english", {
-      path: "/",
-      expires: oneYearFromNow,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
-    return response;
-  }
-
-  if (isApiAuthRoute) {
-    // For API routes, ensure we have a proper base URL
-    nextUrl.protocol = new URL(baseUrl).protocol;
-    nextUrl.host = new URL(baseUrl).host;
+  // Skip proxy for static files and API routes
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.includes(".") // Static files like .ico, .png, etc.
+  ) {
     return NextResponse.next();
   }
 
+  // Get session from iron-session
+  const session = await getIronSession<SessionData>(
+    request.cookies as any,
+    sessionOptions
+  );
+
+  // Check for actual session data - both user and tokens must exist and have values
+  const isLoggedIn = !!(session.user && session.tokens);
+
+  // Define route types
+  const isAuthRoute = authRoutes.includes(pathname);
+  const isWorkspacesRoute =
+    pathname === "/workspaces" || pathname.startsWith("/workspaces/");
+
+  // App routes that require authentication
+  const isAppRoute =
+    pathname === "/" ||
+    pathname.startsWith("/accounts") ||
+    pathname.startsWith("/settings");
+
+  // ============================================
+  // Handle auth routes (login, sign-up, etc.)
+  // ============================================
   if (isAuthRoute) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, baseUrl));
+      // Redirect authenticated users away from auth pages
+      const wsFromCookie = request.cookies.get(WORKSPACE_COOKIE)?.value;
+      const redirectUrl = wsFromCookie
+        ? `/?ws=${wsFromCookie}`
+        : "/workspaces";
+      return NextResponse.redirect(new URL(redirectUrl, baseUrl));
+    }
+    // Not logged in - allow access to auth pages
+    return NextResponse.next();
+  }
+
+  // ============================================
+  // Handle workspaces routes
+  // ============================================
+  if (isWorkspacesRoute) {
+    if (!isLoggedIn) {
+      return NextResponse.redirect(new URL("/login", baseUrl));
     }
     return NextResponse.next();
   }
 
-  if (!isLoggedIn && isProtectedRoute) {
-    return NextResponse.redirect(new URL("/login", baseUrl));
+  // ============================================
+  // Handle app routes - require authentication
+  // ============================================
+  if (isAppRoute) {
+    if (!isLoggedIn) {
+      const loginUrl = new URL("/login", baseUrl);
+      loginUrl.searchParams.set("returnTo", pathname + nextUrl.search);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // ============================================
+    // Handle workspace context for workspace-level routes
+    // ============================================
+    const requiresWorkspace = workspaceRoutes.some(
+      (route) => pathname === route || pathname.startsWith(route + "/")
+    );
+
+    // Account detail pages don't need workspace context
+    const isAccountDetail = /^\/accounts\/[^/]+/.test(pathname);
+
+    if (requiresWorkspace && !isAccountDetail) {
+      const wsParam = searchParams.get("ws");
+      const wsCookie = request.cookies.get(WORKSPACE_COOKIE)?.value;
+
+      // If no workspace in URL or cookie, redirect to workspace selector
+      if (!wsParam && !wsCookie) {
+        const workspacesUrl = new URL("/workspaces", baseUrl);
+        workspacesUrl.searchParams.set("redirect", pathname);
+        return NextResponse.redirect(workspacesUrl);
+      }
+
+      // If workspace in cookie but not in URL, add to URL
+      if (!wsParam && wsCookie) {
+        const newUrl = new URL(request.url);
+        newUrl.searchParams.set("ws", wsCookie);
+        return NextResponse.redirect(newUrl);
+      }
+
+      // If workspace in URL, update cookie
+      if (wsParam) {
+        const response = NextResponse.next();
+        response.cookies.set(WORKSPACE_COOKIE, wsParam, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 365, // 1 year
+          path: "/",
+        });
+        return response;
+      }
+    }
+
+    return NextResponse.next();
   }
 
+  // All other routes - allow through
   return NextResponse.next();
 }
 

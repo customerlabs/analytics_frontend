@@ -1,0 +1,114 @@
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher';
+import { UserProfile } from '@/components/auth/UserProfile';
+import type { Workspace, SessionUser } from '@/lib/keycloak/types';
+import { cn } from '@/lib/utils';
+
+interface AuthHeaderProps {
+  user: SessionUser;
+  currentWorkspace: Workspace;
+  workspaces: Workspace[];
+  onLogout: () => Promise<unknown>;
+}
+
+export function AuthHeader({
+  user,
+  currentWorkspace,
+  workspaces,
+  onLogout,
+}: AuthHeaderProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await onLogout();
+    router.push('/login');
+  };
+
+  return (
+    <header
+      className={cn(
+        'bg-white border-b border-gray-200',
+        'px-4 sm:px-6 py-3',
+        'flex items-center justify-between'
+      )}
+    >
+      {/* Left Section: Logo + Workspace Switcher */}
+      <div className="flex items-center gap-4">
+        {/* Logo */}
+        <Link href={`/?ws=${currentWorkspace.id}`} className="flex-shrink-0">
+          <Image
+            src="/logo.png"
+            alt="Analytics"
+            width={32}
+            height={32}
+            className="h-8 w-auto"
+          />
+        </Link>
+
+        {/* Workspace Switcher */}
+        <WorkspaceSwitcher
+          currentWorkspace={currentWorkspace}
+          workspaces={workspaces}
+        />
+      </div>
+
+      {/* Right Section: User Profile */}
+      <div className="flex items-center gap-4">
+        <UserProfile user={user} onLogout={handleLogout} />
+      </div>
+    </header>
+  );
+}
+
+/**
+ * Header for unauthenticated pages
+ */
+export function PublicHeader() {
+  return (
+    <header
+      className={cn(
+        'bg-white border-b border-gray-200',
+        'px-4 sm:px-6 py-3',
+        'flex items-center justify-between'
+      )}
+    >
+      {/* Logo */}
+      <Link href="/" className="flex-shrink-0">
+        <Image
+          src="/logo.png"
+          alt="Analytics"
+          width={32}
+          height={32}
+          className="h-8 w-auto"
+        />
+      </Link>
+
+      {/* Auth Links */}
+      <div className="flex items-center gap-3">
+        <Link
+          href="/login"
+          className={cn(
+            'text-sm font-medium text-gray-700',
+            'hover:text-gray-900 transition-colors'
+          )}
+        >
+          Sign in
+        </Link>
+        <Link
+          href="/sign-up"
+          className={cn(
+            'text-sm font-medium text-white',
+            'bg-blue-600 hover:bg-blue-700',
+            'px-4 py-2 rounded-lg transition-colors'
+          )}
+        >
+          Get started
+        </Link>
+      </div>
+    </header>
+  );
+}

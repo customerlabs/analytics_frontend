@@ -14,10 +14,10 @@ export function useWorkspaceRouter() {
   const pathname = usePathname();
   const activeWorkspace = useActiveWorkspace();
 
-  // Get current workspace from URL or store
+  // Get current workspace from URL or store (prefer slug for URL generation)
   const currentWorkspace = useMemo(() => {
     const match = pathname?.match(/^\/ws\/([^/]+)/);
-    return match?.[1] || searchParams.get('ws') || activeWorkspace?.id || null;
+    return match?.[1] || searchParams.get('ws') || activeWorkspace?.slug || null;
   }, [pathname, searchParams, activeWorkspace]);
 
   /**
@@ -27,7 +27,6 @@ export function useWorkspaceRouter() {
     // Paths that don't need workspace context
     const noContextPaths = [
       '/profile',
-      '/workspaces',
       '/login',
       '/sign-up',
       '/forgot-password',
@@ -128,10 +127,10 @@ export function useWorkspaceRouter() {
 /**
  * Hook to get just the current workspace from URL
  */
-export function useCurrentWorkspaceId(): string | null {
+export function useCurrentWorkspaceSlug(): string | null {
   const searchParams = useSearchParams();
   const activeWorkspace = useActiveWorkspace();
   const pathname = usePathname();
   const match = pathname?.match(/^\/ws\/([^/]+)/);
-  return match?.[1] || searchParams.get('ws') || activeWorkspace?.id || null;
+  return match?.[1] || searchParams.get('ws') || activeWorkspace?.slug || null;
 }

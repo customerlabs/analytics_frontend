@@ -1,11 +1,12 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import type { Workspace, SessionUser } from '@/lib/keycloak/types';
 import { AuthHeader } from '@/components/layout/AuthHeader';
+import { CreateWorkspaceSheet } from '@/features/workspace/components/CreateWorkspaceSheet';
+import type { Workspace, User } from '@/types/workspace';
 
 interface AppShellProps {
-  user: SessionUser;
+  user: User;
   currentWorkspace?: Workspace | null;
   workspaces?: Workspace[];
   children: React.ReactNode;
@@ -34,6 +35,9 @@ export function AppShell({
         />
       )}
       <div className={showHeader ? 'pt-14' : undefined}>{children}</div>
+
+      {/* Global Create Workspace Sheet */}
+      <CreateWorkspaceSheet />
     </>
   );
 }

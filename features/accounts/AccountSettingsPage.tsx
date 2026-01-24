@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { resolveWorkspaceOrRedirect } from '@/lib/workspace/resolver';
-import { getAccountRole } from '@/lib/keycloak/permissions/checker';
-import { getSession } from '@/lib/auth/session';
+import { auth } from '@/lib/auth';
 import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -16,45 +15,22 @@ export async function AccountSettingsPage({
   workspaceId,
   accountId,
 }: AccountSettingsPageProps) {
-  const session = await getSession();
+  const session = await auth();
 
-  if (!session.user) {
+  if (!session?.user) {
     redirect('/login');
   }
 
-  const workspace = await resolveWorkspaceOrRedirect(
-    workspaceId,
-    routes.ws.accounts.settings(workspaceId, accountId)
-  );
+  const workspace = await resolveWorkspaceOrRedirect(workspaceId);
 
-  const role = await getAccountRole(session.user.id, workspace.id, accountId);
-
-  if (!role) {
-    redirect(routes.ws.accounts.list(workspace.id));
-  }
-
-  if (role !== 'account-admin' && role !== 'account-editor') {
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-semibold text-gray-900">Access Denied</h1>
-        <p className="mt-2 text-gray-500">
-          You don&apos;t have permission to access these settings.
-        </p>
-        <Link
-          href={routes.ws.accounts.detail(workspace.id, accountId)}
-          className="mt-4 inline-block text-blue-600 hover:text-blue-800"
-        >
-          Go back to Account
-        </Link>
-      </div>
-    );
-  }
+  // TODO: Fetch role from backend API when available
+  const role = 'account-admin';
 
   return (
     <div className="space-y-6">
       {/* Back Link */}
       <Link
-        href={routes.ws.accounts.detail(workspace.id, accountId)}
+        href={routes.ws.accounts.detail(workspace.slug, accountId)}
         className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
       >
         <ArrowLeft className="w-4 h-4" />

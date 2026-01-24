@@ -46,13 +46,6 @@ export const routes = {
     security: () => '/profile/security',
   },
 
-  // ============================================
-  // Workspaces (selector + create)
-  // ============================================
-  workspaces: {
-    list: () => '/workspaces',
-    create: () => '/workspaces/new',
-  },
 
   // ============================================
   // API routes
@@ -78,7 +71,6 @@ export const protectedRoutes = [
   '/ws',
   '/settings',
   '/accounts',
-  '/workspaces',
   '/profile',
 ];
 
@@ -96,6 +88,7 @@ export const publicRoutes = [
   '/forgot-password',
   '/verify-email',
   '/api/auth',
+  '/auth/post-login',
 ];
 
 /**
@@ -107,7 +100,6 @@ export const workspaceIndependentRoutes = [
   '/sign-up',
   '/forgot-password',
   '/profile',
-  '/workspaces',
 ];
 
 /**

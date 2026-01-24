@@ -1,15 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { LogOut, User, Settings, ChevronDown } from 'lucide-react';
+import { LogOut, User as UserIcon, Settings, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { User } from '@/types/workspace';
 
 interface UserProfileProps {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
+  user: User;
   onLogout: () => void;
   className?: string;
 }
@@ -25,7 +22,8 @@ const AVATAR_COLORS = [
 ] as const;
 
 // Pure functions moved outside component
-function getInitials(name: string): string {
+function getInitials(name: string | null | undefined): string {
+  if (!name) return '?';
   const parts = name.split(' ');
   if (parts.length >= 2) {
     return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
@@ -33,7 +31,8 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-function getAvatarColor(email: string): string {
+function getAvatarColor(email: string | null | undefined): string {
+  if (!email) return AVATAR_COLORS[0];
   const hash = email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
@@ -82,7 +81,7 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
         {/* User info */}
         <div className="hidden sm:block text-left">
           <div className="text-sm font-medium text-gray-900 max-w-[120px] truncate">
-            {user.name}
+            {user.name || 'User'}
           </div>
         </div>
 
@@ -105,8 +104,8 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
         >
           {/* User Info Header */}
           <div className="px-3 py-2 border-b border-gray-100">
-            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-            <div className="text-xs text-gray-500 truncate">{user.email}</div>
+            <div className="text-sm font-medium text-gray-900">{user.name || 'User'}</div>
+            <div className="text-xs text-gray-500 truncate">{user.email || ''}</div>
           </div>
 
           {/* Menu Items */}
@@ -119,7 +118,7 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
               )}
               onClick={() => setIsOpen(false)}
             >
-              <User className="w-4 h-4" />
+              <UserIcon className="w-4 h-4" />
               <span>Profile</span>
             </a>
 

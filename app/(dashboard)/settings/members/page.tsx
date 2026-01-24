@@ -10,6 +10,6 @@ interface MembersPageProps {
 
 export default async function MembersPage({ searchParams }: MembersPageProps) {
   const params = await searchParams;
-  const workspace = await resolveWorkspaceOrRedirect(params.ws, '/settings/members');
-  redirect(routes.ws.settings.members(workspace.id));
+  const workspace = await resolveWorkspaceOrRedirect(params.ws);
+  redirect(routes.ws.settings.members(workspace.slug));
 }

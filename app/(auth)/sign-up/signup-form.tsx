@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignupSchema, type SignupFormData } from "@/schemas/signupSchema";
-import { registerUser, initiateLogin } from "@/lib/actions/auth";
+import { registerUser, initiateLogin } from "@/lib/auth";
 
 type FormErrors = Partial<Record<keyof SignupFormData, string>> & {
   general?: string;
@@ -74,8 +74,8 @@ export function SignupForm() {
         return;
       }
 
-      // Redirect to workspaces page after successful registration
-      router.push(registerResult.redirectTo || "/workspaces?redirect=/");
+      // Redirect to workspace dashboard after successful registration
+      router.push(registerResult.redirectTo || "/ws");
     } catch {
       setErrors({ general: "An unexpected error occurred" });
       setIsLoading(false);
@@ -86,7 +86,7 @@ export function SignupForm() {
     setIsSocialLoading(true);
     try {
       // For social signup, use OAuth flow (redirects to Keycloak)
-      await initiateLogin("/");
+      await initiateLogin("/auth/post-login");
     } catch {
       setErrors({ general: "Failed to initiate social signup" });
       setIsSocialLoading(false);

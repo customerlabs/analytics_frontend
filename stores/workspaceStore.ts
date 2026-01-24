@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Workspace } from '@/lib/keycloak/types';
+import type { Workspace } from '@/types/workspace';
 
 interface WorkspaceState {
   // Current active workspace (client-side state)
@@ -49,8 +49,3 @@ export const useActiveWorkspace = () =>
 
 export const useWorkspaces = () =>
   useWorkspaceStore((state) => state.workspaces);
-
-export const useIsWorkspaceAdmin = () =>
-  useWorkspaceStore(
-    (state) => state.activeWorkspace?.role === 'workspace-admin'
-  );

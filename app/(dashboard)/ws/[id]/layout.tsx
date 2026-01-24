@@ -1,10 +1,9 @@
 import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
+import { getSession, logoutAction } from '@/lib/auth';
 import {
   getUserWorkspaceList,
   resolveWorkspaceOrRedirect,
 } from '@/lib/workspace/resolver';
-import { logout } from '@/lib/actions/auth';
 import { AuthHeader } from '@/components/layout/AuthHeader';
 import { TabNavigation, defaultTabs } from '@/components/layout/TabNavigation';
 import { WorkspaceProvider } from '@/lib/workspace/context';
@@ -22,7 +21,7 @@ export default async function WorkspaceLayout({
 }: WorkspaceLayoutProps) {
   const session = await getSession();
 
-  if (!session.user) {
+  if (!session?.user) {
     redirect('/login');
   }
 
@@ -30,11 +29,11 @@ export default async function WorkspaceLayout({
 
   const [workspaces, workspace] = await Promise.all([
     getUserWorkspaceList(),
-    resolveWorkspaceOrRedirect(id, `/ws/${id}`),
+    resolveWorkspaceOrRedirect(id),
   ]);
 
   if (workspaces.length === 0) {
-    redirect('/workspaces/new');
+    redirect('/ws');
   }
 
   return (
@@ -44,13 +43,13 @@ export default async function WorkspaceLayout({
           user={session.user}
           currentWorkspace={workspace}
           workspaces={workspaces}
-          onLogout={logout}
+          onLogout={logoutAction}
         />
 
         <div className="pt-14">
           <TabNavigation
             tabs={defaultTabs}
-            workspaceId={workspace.id}
+            workspaceId={workspace.slug}
             className="sticky top-14 z-40"
           />
 

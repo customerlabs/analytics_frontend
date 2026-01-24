@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft, Settings } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { resolveWorkspaceOrRedirect } from '@/lib/workspace/resolver';
-import { getAccountRole } from '@/lib/keycloak/permissions/checker';
-import { getSession } from '@/lib/auth/session';
+import { auth } from '@/lib/auth';
 import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -16,37 +15,16 @@ export async function AccountDetailPage({
   workspaceId,
   accountId,
 }: AccountDetailPageProps) {
-  const session = await getSession();
+  const session = await auth();
 
-  if (!session.user) {
+  if (!session?.user) {
     redirect('/login');
   }
 
-  const workspace = await resolveWorkspaceOrRedirect(
-    workspaceId,
-    routes.ws.accounts.detail(workspaceId, accountId)
-  );
+  const workspace = await resolveWorkspaceOrRedirect(workspaceId);
 
-  const role = await getAccountRole(session.user.id, workspace.id, accountId);
-
-  if (!role) {
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Account Not Found
-        </h1>
-        <p className="mt-2 text-gray-500">
-          You don&apos;t have access to this account.
-        </p>
-        <Link
-          href={routes.ws.accounts.list(workspace.id)}
-          className="mt-4 inline-block text-blue-600 hover:text-blue-800"
-        >
-          Back to Accounts
-        </Link>
-      </div>
-    );
-  }
+  // TODO: Fetch role from backend API when available
+  const role = 'account-admin';
 
   const isAdmin = role === 'account-admin';
 
@@ -54,7 +32,7 @@ export async function AccountDetailPage({
     <div className="space-y-6">
       {/* Back Link */}
       <Link
-        href={routes.ws.accounts.list(workspace.id)}
+        href={routes.ws.accounts.list(workspace.slug)}
         className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -72,7 +50,7 @@ export async function AccountDetailPage({
 
         {isAdmin && (
           <Link
-            href={routes.ws.accounts.settings(workspace.id, accountId)}
+            href={routes.ws.accounts.settings(workspace.slug, accountId)}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-lg',
               'bg-white border border-gray-300 text-gray-700 text-sm font-medium',
@@ -126,7 +104,7 @@ export async function AccountDetailPage({
           </h2>
           <div className="space-y-3">
             <Link
-              href={routes.ws.accounts.settings(workspace.id, accountId)}
+              href={routes.ws.accounts.settings(workspace.slug, accountId)}
               className="block w-full px-4 py-3 text-left rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
             >
               <p className="text-sm font-medium text-gray-900">

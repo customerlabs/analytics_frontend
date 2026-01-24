@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { resolveWorkspaceOrRedirect } from '@/lib/workspace/resolver';
-import { getAccountsForWorkspace } from '@/lib/keycloak/permissions/resolver';
-import { getSession } from '@/lib/auth/session';
 import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -11,17 +9,10 @@ interface AccountsPageProps {
 }
 
 export async function AccountsPage({ workspaceId }: AccountsPageProps) {
-  const workspace = await resolveWorkspaceOrRedirect(
-    workspaceId,
-    routes.ws.accounts.list(workspaceId)
-  );
-  const session = await getSession();
+  const workspace = await resolveWorkspaceOrRedirect(workspaceId);
 
-  const accounts = session.user
-    ? await getAccountsForWorkspace(session.user.id, workspace.id)
-    : [];
-
-  const isAdmin = workspace.role === 'workspace-admin';
+  // TODO: Fetch accounts from backend API when available
+  const accounts: { accountId: string; role: string }[] = [];
 
   return (
     <div className="space-y-6">
@@ -34,19 +25,17 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
           </p>
         </div>
 
-        {isAdmin && (
-          <button
-            className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg',
-              'bg-blue-600 text-white text-sm font-medium',
-              'hover:bg-blue-700 transition-colors',
-              'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-            )}
-          >
-            <Plus className="w-4 h-4" />
-            Add Account
-          </button>
-        )}
+        <button
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-lg',
+            'bg-blue-600 text-white text-sm font-medium',
+            'hover:bg-blue-700 transition-colors',
+            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+          )}
+        >
+          <Plus className="w-4 h-4" />
+          Add Account
+        </button>
       </div>
 
       {/* Accounts Grid */}
@@ -69,22 +58,18 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
           </div>
           <h3 className="text-sm font-medium text-gray-900">No accounts</h3>
           <p className="mt-1 text-sm text-gray-500">
-            {isAdmin
-              ? 'Get started by adding your first account.'
-              : "You don't have access to any accounts in this workspace."}
+            Get started by adding your first account.
           </p>
-          {isAdmin && (
-            <button
-              className={cn(
-                'mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg',
-                'bg-blue-600 text-white text-sm font-medium',
-                'hover:bg-blue-700 transition-colors'
-              )}
-            >
-              <Plus className="w-4 h-4" />
-              Add Account
-            </button>
-          )}
+          <button
+            className={cn(
+              'mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg',
+              'bg-blue-600 text-white text-sm font-medium',
+              'hover:bg-blue-700 transition-colors'
+            )}
+          >
+            <Plus className="w-4 h-4" />
+            Add Account
+          </button>
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -114,7 +99,7 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Link
                       href={routes.ws.accounts.detail(
-                        workspace.id,
+                        workspace.slug,
                         account.accountId
                       )}
                       className="text-sm font-medium text-blue-600 hover:text-blue-800"
@@ -139,7 +124,7 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link
                       href={routes.ws.accounts.settings(
-                        workspace.id,
+                        workspace.slug,
                         account.accountId
                       )}
                       className="text-gray-600 hover:text-gray-900"

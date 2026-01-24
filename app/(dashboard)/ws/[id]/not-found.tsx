@@ -10,10 +10,10 @@ export default function WorkspaceNotFound() {
         You don&apos;t have access to this workspace.
       </p>
       <Link
-        href="/workspaces"
+        href="/ws"
         className="mt-4 inline-block text-blue-600 hover:text-blue-800"
       >
-        Go to workspaces
+        Go to dashboard
       </Link>
     </div>
   );

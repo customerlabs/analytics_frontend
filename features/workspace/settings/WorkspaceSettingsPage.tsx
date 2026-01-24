@@ -9,12 +9,7 @@ interface WorkspaceSettingsPageProps {
 export async function WorkspaceSettingsPage({
   workspaceId,
 }: WorkspaceSettingsPageProps) {
-  const workspace = await resolveWorkspaceOrRedirect(
-    workspaceId,
-    routes.ws.settings.general(workspaceId)
-  );
-
-  const isAdmin = workspace.role === 'workspace-admin';
+  const workspace = await resolveWorkspaceOrRedirect(workspaceId);
 
   return (
     <div className="space-y-6">
@@ -50,7 +45,6 @@ export async function WorkspaceSettingsPage({
               type="text"
               id="workspaceName"
               defaultValue={workspace.name}
-              disabled={!isAdmin}
               className={cn(
                 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2',
                 'text-sm text-gray-900',
@@ -84,58 +78,54 @@ export async function WorkspaceSettingsPage({
           </div>
 
           {/* Save Button */}
-          {isAdmin && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className={cn(
-                  'px-4 py-2 rounded-lg',
-                  'bg-blue-600 text-white text-sm font-medium',
-                  'hover:bg-blue-700 transition-colors',
-                  'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-                )}
-              >
-                Save Changes
-              </button>
-            </div>
-          )}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className={cn(
+                'px-4 py-2 rounded-lg',
+                'bg-blue-600 text-white text-sm font-medium',
+                'hover:bg-blue-700 transition-colors',
+                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+              )}
+            >
+              Save Changes
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Danger Zone */}
-      {isAdmin && (
-        <div className="bg-white rounded-lg border border-red-200">
-          <div className="p-6 border-b border-red-200">
-            <h2 className="text-lg font-medium text-red-600">Danger Zone</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Irreversible actions for this workspace
-            </p>
-          </div>
+      <div className="bg-white rounded-lg border border-red-200">
+        <div className="p-6 border-b border-red-200">
+          <h2 className="text-lg font-medium text-red-600">Danger Zone</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Irreversible actions for this workspace
+          </p>
+        </div>
 
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">
-                  Delete Workspace
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Permanently delete this workspace and all its accounts
-                </p>
-              </div>
-              <button
-                type="button"
-                className={cn(
-                  'px-4 py-2 rounded-lg',
-                  'bg-red-600 text-white text-sm font-medium',
-                  'hover:bg-red-700 transition-colors'
-                )}
-              >
-                Delete
-              </button>
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-gray-900">
+                Delete Workspace
+              </h3>
+              <p className="text-sm text-gray-500">
+                Permanently delete this workspace and all its accounts
+              </p>
             </div>
+            <button
+              type="button"
+              className={cn(
+                'px-4 py-2 rounded-lg',
+                'bg-red-600 text-white text-sm font-medium',
+                'hover:bg-red-700 transition-colors'
+              )}
+            >
+              Delete
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

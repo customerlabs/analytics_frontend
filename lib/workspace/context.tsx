@@ -1,14 +1,11 @@
 'use client';
 
 import { createContext, useContext, ReactNode } from 'react';
-import type { Workspace, WorkspaceRole } from '@/lib/keycloak/types';
+import type { Workspace } from '@/types/workspace';
 
 // Workspace context type
 interface WorkspaceContextValue {
   workspace: Workspace;
-  isAdmin: boolean;
-  isBilling: boolean;
-  canManageMembers: boolean;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
@@ -28,11 +25,6 @@ export function WorkspaceProvider({
 }: WorkspaceProviderProps) {
   const value: WorkspaceContextValue = {
     workspace,
-    isAdmin: workspace.role === 'workspace-admin',
-    isBilling:
-      workspace.role === 'workspace-admin' ||
-      workspace.role === 'workspace-billing',
-    canManageMembers: workspace.role === 'workspace-admin',
   };
 
   return (
@@ -61,26 +53,4 @@ export function useWorkspace(): WorkspaceContextValue {
  */
 export function useOptionalWorkspace(): WorkspaceContextValue | null {
   return useContext(WorkspaceContext);
-}
-
-/**
- * Check if user has a specific workspace role
- */
-export function useHasWorkspaceRole(requiredRole: WorkspaceRole): boolean {
-  const context = useContext(WorkspaceContext);
-
-  if (!context) {
-    return false;
-  }
-
-  const roleHierarchy: WorkspaceRole[] = [
-    'workspace-member',
-    'workspace-billing',
-    'workspace-admin',
-  ];
-
-  const userRoleIndex = roleHierarchy.indexOf(context.workspace.role);
-  const requiredRoleIndex = roleHierarchy.indexOf(requiredRole);
-
-  return userRoleIndex >= requiredRoleIndex;
 }

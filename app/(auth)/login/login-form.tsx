@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -11,81 +11,44 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { LoginSchema } from "@/schemas/loginSchema";
-import { loginWithCredentials, initiateLogin } from "@/lib/actions/auth";
-
-interface FormErrors {
-  email?: string;
-  password?: string;
-  general?: string;
-}
+import { loginAction, initiateKeycloakLogin } from "@/lib/auth";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const errorFromUrl = searchParams.get("error");
+  const messageFromUrl = searchParams.get("message");
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSocialLoading, setIsSocialLoading] = useState(false);
+  const [state, formAction, isPending] = useActionState(loginAction, null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setErrors({});
-
-    const result = LoginSchema.safeParse({ email, password });
-
-    if (!result.success) {
-      const fieldErrors: FormErrors = {};
-      result.error.issues.forEach((issue) => {
-        const field = issue.path[0] as keyof FormErrors;
-        fieldErrors[field] = issue.message;
-      });
-      setErrors(fieldErrors);
-      return;
+  // Handle redirect after successful login
+  useEffect(() => {
+    if (state?.redirect) {
+      router.push(state.redirect);
     }
-
-    setIsLoading(true);
-
-    try {
-      const loginResult = await loginWithCredentials(email, password);
-
-      if (!loginResult.success) {
-        setErrors({ general: loginResult.error || "Login failed" });
-        setIsLoading(false);
-        return;
-      }
-
-      // Redirect to workspaces page for workspace selection
-      router.push("/workspaces?redirect=/");
-    } catch {
-      setErrors({ general: "An unexpected error occurred" });
-      setIsLoading(false);
-    }
-  };
+  }, [state, router]);
 
   const handleSocialLogin = async () => {
-    setIsSocialLoading(true);
-    try {
-      await initiateLogin("/");
-    } catch {
-      // initiateLogin redirects, so this catch is for unexpected errors
-      setErrors({ general: "Failed to initiate login" });
-      setIsSocialLoading(false);
-    }
+    await initiateKeycloakLogin("/auth/post-login");
   };
 
   return (
     <AuthCard title="Welcome back" subtitle="Please enter your details">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Show error from URL or general error */}
-        {(errorFromUrl || errors.general) && (
+      <form action={formAction} className="space-y-4">
+        {/* Show success message from URL */}
+        {messageFromUrl === "account_created" && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-600">
+              Account created successfully! Please sign in.
+            </p>
+          </div>
+        )}
+
+        {/* Show error from URL or state */}
+        {(errorFromUrl || state?.error) && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-600">
-              {errorFromUrl || errors.general}
+              {errorFromUrl || state?.error}
             </p>
           </div>
         )}
@@ -94,39 +57,29 @@ export function LoginForm() {
           <Label htmlFor="email">Email address</Label>
           <Input
             id="email"
+            name="email"
             type="email"
-            placeholder="Email adress"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            aria-invalid={!!errors.email}
+            placeholder="Email address"
+            required
+            disabled={isPending}
           />
-          {errors.email && (
-            <p className="text-sm text-destructive">{errors.email}</p>
-          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <Input
             id="password"
+            name="password"
             type="password"
             placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-invalid={!!errors.password}
+            required
+            disabled={isPending}
           />
-          {errors.password && (
-            <p className="text-sm text-destructive">{errors.password}</p>
-          )}
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Checkbox
-              id="remember"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked === true)}
-            />
+            <Checkbox id="remember" name="remember" />
             <Label
               htmlFor="remember"
               className="cursor-pointer text-sm font-normal"
@@ -142,15 +95,15 @@ export function LoginForm() {
           </Link>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
           Sign In
         </Button>
 
         <SocialButton
           provider="google"
           onClick={handleSocialLogin}
-          disabled={isSocialLoading || isLoading}
+          disabled={isPending}
         />
 
         <AuthFooter

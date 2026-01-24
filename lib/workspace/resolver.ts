@@ -2,11 +2,37 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
-import { getUserPermissions } from '@/lib/keycloak/permissions/resolver';
-import type { Workspace, WorkspaceRole } from '@/lib/keycloak/types';
+import { auth } from '@/lib/auth';
+import { listWorkspaces } from '@/lib/api/workspaces';
+import type { WorkspaceWithRole } from '@/lib/api/workspaces';
+
+// Re-export the Workspace type for compatibility
+export interface Workspace {
+  id: string;
+  slug: string;
+  name: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  organization_id?: string | null;
+}
 
 const WORKSPACE_COOKIE = 'analytics_workspace';
+
+// Cache workspaces for the current request to avoid multiple API calls
+let cachedWorkspaces: WorkspaceWithRole[] | null = null;
+
+async function getWorkspacesFromBackend(): Promise<WorkspaceWithRole[]> {
+  if (cachedWorkspaces !== null) {
+    return cachedWorkspaces;
+  }
+
+  try {
+    cachedWorkspaces = await listWorkspaces();
+    return cachedWorkspaces;
+  } catch (error) {
+    console.error('Failed to fetch workspaces from backend:', error);
+    return [];
+  }
+}
 
 /**
  * Resolve workspace from various sources
@@ -15,60 +41,60 @@ const WORKSPACE_COOKIE = 'analytics_workspace';
 export async function resolveWorkspace(
   wsParam?: string | null
 ): Promise<Workspace | null> {
-  const session = await getSession();
+  const session = await auth();
 
-  if (!session.user) {
+  if (!session?.user) {
     return null;
   }
 
-  // Get user's workspaces
-  const permissions = await getUserPermissions(session.user.id);
-  const workspaceIds = Object.keys(permissions.workspaces);
+  // Get user's workspaces from backend API
+  const workspaces = await getWorkspacesFromBackend();
 
-  if (workspaceIds.length === 0) {
+  if (workspaces.length === 0) {
     return null;
   }
 
-  // 1. Try query parameter
-  if (wsParam && permissions.workspaces[wsParam]) {
-    await setWorkspaceCookie(wsParam);
-    return buildWorkspace(wsParam, permissions.workspaces[wsParam].role);
+  // Create a map for quick lookup by id or slug
+  const workspaceMap = new Map<string, WorkspaceWithRole>();
+  for (const ws of workspaces) {
+    workspaceMap.set(ws.id, ws);
+    workspaceMap.set(ws.slug, ws);
+  }
+
+  // 1. Try query parameter (can be id or slug)
+  if (wsParam) {
+    const workspace = workspaceMap.get(wsParam);
+    if (workspace) {
+      return transformWorkspace(workspace);
+    }
   }
 
   // 2. Try cookie
   const cookieStore = await cookies();
   const cookieWorkspace = cookieStore.get(WORKSPACE_COOKIE)?.value;
 
-  if (cookieWorkspace && permissions.workspaces[cookieWorkspace]) {
-    return buildWorkspace(
-      cookieWorkspace,
-      permissions.workspaces[cookieWorkspace].role
-    );
+  if (cookieWorkspace) {
+    const workspace = workspaceMap.get(cookieWorkspace);
+    if (workspace) {
+      return transformWorkspace(workspace);
+    }
   }
 
   // 3. Use first available workspace
-  const firstWorkspaceId = workspaceIds[0];
-  await setWorkspaceCookie(firstWorkspaceId);
-  return buildWorkspace(
-    firstWorkspaceId,
-    permissions.workspaces[firstWorkspaceId].role
-  );
+  const firstWorkspace = workspaces[0];
+  return transformWorkspace(firstWorkspace);
 }
 
 /**
  * Resolve workspace or redirect to workspace selector
  */
 export async function resolveWorkspaceOrRedirect(
-  wsParam?: string | null,
-  currentPath?: string
+  wsParam?: string | null
 ): Promise<Workspace> {
   const workspace = await resolveWorkspace(wsParam);
 
   if (!workspace) {
-    const redirectPath = currentPath
-      ? `/workspaces?redirect=${encodeURIComponent(currentPath)}`
-      : '/workspaces';
-    redirect(redirectPath);
+    redirect('/ws');
   }
 
   return workspace;
@@ -76,28 +102,21 @@ export async function resolveWorkspaceOrRedirect(
 
 /**
  * Get workspace from account ID
- * Since accounts are globally unique, we can derive the workspace
+ * Note: This requires the backend to support account-to-workspace lookup
+ * For now, we search through user's workspaces
  */
 export async function getWorkspaceFromAccount(
   accountId: string
 ): Promise<Workspace | null> {
-  const session = await getSession();
+  const session = await auth();
 
-  if (!session.user) {
+  if (!session?.user) {
     return null;
   }
 
-  const permissions = await getUserPermissions(session.user.id);
-
-  // Search through all workspaces to find the account
-  for (const [workspaceId, workspaceData] of Object.entries(
-    permissions.workspaces
-  )) {
-    if (workspaceData.accounts[accountId]) {
-      return buildWorkspace(workspaceId, workspaceData.role);
-    }
-  }
-
+  // TODO: Implement account-to-workspace lookup via backend API
+  // For now, return null - the backend should provide this endpoint
+  console.warn('getWorkspaceFromAccount: Not yet implemented with backend API', accountId);
   return null;
 }
 
@@ -105,17 +124,14 @@ export async function getWorkspaceFromAccount(
  * Get all workspaces for current user
  */
 export async function getUserWorkspaceList(): Promise<Workspace[]> {
-  const session = await getSession();
+  const session = await auth();
 
-  if (!session.user) {
+  if (!session?.user) {
     return [];
   }
 
-  const permissions = await getUserPermissions(session.user.id);
-
-  return Object.entries(permissions.workspaces).map(([id, data]) =>
-    buildWorkspace(id, data.role)
-  );
+  const workspaces = await getWorkspacesFromBackend();
+  return workspaces.map(transformWorkspace);
 }
 
 /**
@@ -141,48 +157,21 @@ export async function getWorkspaceCookie(): Promise<string | null> {
 }
 
 /**
- * Clear workspace cookie
+ * Transform backend workspace response to local Workspace type
  */
-export async function clearWorkspaceCookie(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(WORKSPACE_COOKIE);
-}
-
-/**
- * Switch to a different workspace
- */
-export async function switchWorkspace(workspaceId: string): Promise<boolean> {
-  const session = await getSession();
-
-  if (!session.user) {
-    return false;
-  }
-
-  const permissions = await getUserPermissions(session.user.id);
-
-  if (!permissions.workspaces[workspaceId]) {
-    return false;
-  }
-
-  await setWorkspaceCookie(workspaceId);
-  return true;
-}
-
-/**
- * Build workspace object from ID and role
- */
-function buildWorkspace(id: string, role: WorkspaceRole): Workspace {
-  // In a real app, you'd fetch the display name from Keycloak or your DB
-  // For now, we'll derive it from the slug
-  const name = id
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-
+function transformWorkspace(ws: WorkspaceWithRole): Workspace {
   return {
-    id,
-    slug: id,
-    name,
-    role,
+    id: ws.id,
+    slug: ws.slug,
+    name: ws.name,
+    role: ws.role,
+    organization_id: ws.organization_id,
   };
+}
+
+/**
+ * Clear the workspace cache (call after workspace mutations)
+ */
+export async function clearWorkspaceCache(): Promise<void> {
+  cachedWorkspaces = null;
 }

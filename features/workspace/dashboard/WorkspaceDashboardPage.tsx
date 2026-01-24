@@ -1,7 +1,5 @@
 import Link from 'next/link';
 import { resolveWorkspaceOrRedirect } from '@/lib/workspace/resolver';
-import { getAccountsForWorkspace } from '@/lib/keycloak/permissions/resolver';
-import { getSession } from '@/lib/auth/session';
 import { routes } from '@/lib/routes';
 
 interface WorkspaceDashboardPageProps {
@@ -11,15 +9,10 @@ interface WorkspaceDashboardPageProps {
 export async function WorkspaceDashboardPage({
   workspaceId,
 }: WorkspaceDashboardPageProps) {
-  const workspace = await resolveWorkspaceOrRedirect(
-    workspaceId,
-    routes.ws.dashboard(workspaceId)
-  );
-  const session = await getSession();
+  const workspace = await resolveWorkspaceOrRedirect(workspaceId);
 
-  const accounts = session.user
-    ? await getAccountsForWorkspace(session.user.id, workspace.id)
-    : [];
+  // TODO: Fetch accounts from backend API when available
+  const accounts: { accountId: string; role: string }[] = [];
 
   return (
     <div className="space-y-6">
@@ -83,7 +76,7 @@ export async function WorkspaceDashboardPage({
               <li key={account.accountId}>
                 <Link
                   href={routes.ws.accounts.detail(
-                    workspace.id,
+                    workspace.slug,
                     account.accountId
                   )}
                   className="block px-4 py-4 hover:bg-gray-50 transition-colors"

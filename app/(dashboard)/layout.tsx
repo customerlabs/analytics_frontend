@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
+import { auth, logoutAction } from '@/lib/auth';
 import { getUserWorkspaceList, resolveWorkspace } from '@/lib/workspace/resolver';
-import { logout } from '@/lib/actions/auth';
 import { AppShell } from '@/components/layout/AppShell';
 
 interface AppLayoutProps {
@@ -9,11 +8,11 @@ interface AppLayoutProps {
 }
 
 export default async function AppLayout({ children }: AppLayoutProps) {
-  // Get session first (required for auth check)
-  const session = await getSession();
+  // Get session using NextAuth
+  const session = await auth();
 
   // Redirect to login if not authenticated
-  if (!session.user) {
+  if (!session?.user) {
     redirect('/login');
   }
 
@@ -22,13 +21,20 @@ export default async function AppLayout({ children }: AppLayoutProps) {
     resolveWorkspace(),
   ]);
 
+  // Map NextAuth session user to expected format
+  const user = {
+    id: session.user.id,
+    email: session.user.email || '',
+    name: session.user.name || '',
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AppShell
-        user={session.user}
+        user={user}
         currentWorkspace={currentWorkspace}
         workspaces={workspaces}
-        onLogout={logout}
+        onLogout={logoutAction}
       >
         {children}
       </AppShell>

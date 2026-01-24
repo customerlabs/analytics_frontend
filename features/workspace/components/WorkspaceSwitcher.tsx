@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check, Plus, Settings } from 'lucide-react';
+import { ChevronDown, Check, Plus } from 'lucide-react';
 import { useWorkspaceRouter } from '@/hooks/useWorkspaceRouter';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
-import type { Workspace } from '@/lib/keycloak/types';
-import { routes } from '@/lib/routes';
+import { useCreateWorkspaceSheet } from '@/hooks/useCreateWorkspaceSheet';
 import { cn } from '@/lib/utils';
+import type { Workspace } from '@/types/workspace';
 
 interface WorkspaceSwitcherProps {
   currentWorkspace: Workspace;
@@ -50,6 +50,7 @@ export function WorkspaceSwitcher({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { switchWorkspace } = useWorkspaceRouter();
   const { setActiveWorkspace } = useWorkspaceStore();
+  const { open: openCreateSheet } = useCreateWorkspaceSheet();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -75,8 +76,8 @@ export function WorkspaceSwitcher({
     // Update local state
     setActiveWorkspace(workspace);
 
-    // Navigate to dashboard with new workspace
-    switchWorkspace(workspace.id);
+    // Navigate to dashboard with new workspace (use slug for cleaner URLs)
+    switchWorkspace(workspace.slug);
     setIsOpen(false);
   };
 
@@ -149,30 +150,11 @@ export function WorkspaceSwitcher({
           {/* Divider */}
           <div className="border-t border-gray-100 my-1" />
 
-          {/* Workspace Settings (Admin only) */}
-          {currentWorkspace.role === 'workspace-admin' && (
-            <button
-              onClick={() => {
-                switchWorkspace(
-                  currentWorkspace.id,
-                  routes.ws.settings.general(currentWorkspace.id)
-                );
-                setIsOpen(false);
-              }}
-              className={cn(
-                'w-full flex items-center gap-2 px-3 py-2',
-                'text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors'
-              )}
-            >
-              <Settings className="w-4 h-4" />
-              <span>Workspace Settings</span>
-            </button>
-          )}
-
           {/* Create New Workspace */}
           <button
             onClick={() => {
-              window.location.href = '/workspaces/new';
+              setIsOpen(false);
+              openCreateSheet();
             }}
             className={cn(
               'w-full flex items-center gap-2 px-3 py-2',

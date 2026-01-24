@@ -12,6 +12,6 @@ export default async function DashboardPage({
   searchParams,
 }: DashboardPageProps) {
   const params = await searchParams;
-  const workspace = await resolveWorkspaceOrRedirect(params.ws, '/');
-  redirect(routes.ws.dashboard(workspace.id));
+  const workspace = await resolveWorkspaceOrRedirect(params.ws);
+  redirect(routes.ws.dashboard(workspace.slug));
 }

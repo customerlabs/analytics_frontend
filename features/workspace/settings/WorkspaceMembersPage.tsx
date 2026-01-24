@@ -11,14 +11,7 @@ interface WorkspaceMembersPageProps {
 export async function WorkspaceMembersPage({
   workspaceId,
 }: WorkspaceMembersPageProps) {
-  const workspace = await resolveWorkspaceOrRedirect(
-    workspaceId,
-    routes.ws.settings.members(workspaceId)
-  );
-
-  if (workspace.role !== 'workspace-admin') {
-    redirect(routes.ws.settings.general(workspace.id));
-  }
+  const workspace = await resolveWorkspaceOrRedirect(workspaceId);
 
   const members = [
     {

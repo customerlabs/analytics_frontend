@@ -12,6 +12,6 @@ export default async function SettingsPage({
   searchParams,
 }: SettingsPageProps) {
   const params = await searchParams;
-  const workspace = await resolveWorkspaceOrRedirect(params.ws, '/settings');
-  redirect(routes.ws.settings.general(workspace.id));
+  const workspace = await resolveWorkspaceOrRedirect(params.ws);
+  redirect(routes.ws.settings.general(workspace.slug));
 }

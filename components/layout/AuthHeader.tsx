@@ -3,14 +3,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
+import { WorkspaceSelector } from '@/features/workspace/components/WorkspaceSelector';
 import { UserProfile } from '@/components/auth/UserProfile';
-import type { Workspace, SessionUser } from '@/lib/keycloak/types';
 import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
+import type { Workspace, User } from '@/types/workspace';
 
 interface AuthHeaderProps {
-  user: SessionUser;
+  user: User;
   currentWorkspace?: Workspace;
   workspaces?: Workspace[];
   onLogout: () => Promise<unknown>;
@@ -47,7 +47,7 @@ export function AuthHeader({
           href={
             currentWorkspace
               ? routes.ws.dashboard(currentWorkspace.id)
-              : '/workspaces'
+              : '/ws'
           }
           className="shrink-0"
         >
@@ -62,7 +62,7 @@ export function AuthHeader({
 
         {/* Workspace Switcher */}
         {hasWorkspaceData && (
-          <WorkspaceSwitcher
+          <WorkspaceSelector
             currentWorkspace={currentWorkspace!}
             workspaces={workspaces!}
           />

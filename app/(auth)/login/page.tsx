@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { LoginForm } from "./login-form";
+import { LoginForm } from "../../../components/auth/form/login-form";
 import { AuthCard } from "@/components/auth/auth-card";
 
 export const dynamic = "force-dynamic";

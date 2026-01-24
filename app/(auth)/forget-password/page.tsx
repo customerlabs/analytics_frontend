@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ForgotPasswordForm } from "./forgot-password-form";
+import { ForgotPasswordForm } from "../../../components/auth/form/forgot-password-form";
 import { AuthCard } from "@/components/auth/auth-card";
 
 export const dynamic = "force-dynamic";

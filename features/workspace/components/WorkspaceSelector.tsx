@@ -231,7 +231,7 @@ export function WorkspaceSelector({
 
       {/* Modal Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 top-14 z-[100]">
+        <div className="fixed inset-0 top-14 z-100">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/20"
@@ -456,7 +456,7 @@ export function WorkspaceSelector({
 
       {/* Loading Overlay - shown over the modal when switching */}
       {isSwitching && isOpen && (
-        <div className="fixed inset-0 top-14 z-[102] flex items-center justify-center bg-black/10">
+        <div className="fixed inset-0 top-14 z-102 flex items-center justify-center bg-black/10">
           <div className="bg-white rounded-lg p-6 shadow-lg flex items-center gap-3">
             <div className="h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-gray-600">Switching workspace...</span>

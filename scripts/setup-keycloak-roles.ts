@@ -1,7 +1,7 @@
 /**
  * Setup Keycloak Client Roles
  *
- * This script creates the required client roles for the analytics-app client.
+ * This script creates the required client roles for the admin client.
  * It is idempotent - safe to run multiple times without creating duplicates.
  *
  * Usage:
@@ -10,7 +10,6 @@
  * Required environment variables (via .env or .env.local):
  *   - KEYCLOAK_URL
  *   - KEYCLOAK_REALM
- *   - KEYCLOAK_CLIENT_ID (the analytics-app client)
  *   - KEYCLOAK_ADMIN_CLIENT_ID
  *   - KEYCLOAK_ADMIN_CLIENT_SECRET
  */
@@ -27,7 +26,7 @@ config({ path: '.env' });
 const keycloakConfig = {
   url: process.env.KEYCLOAK_URL!,
   realm: process.env.KEYCLOAK_REALM!,
-  clientId: process.env.KEYCLOAK_CLIENT_ID!,
+  clientId: process.env.KEYCLOAK_ADMIN_CLIENT_ID!,
   adminClientId: process.env.KEYCLOAK_ADMIN_CLIENT_ID!,
   adminClientSecret: process.env.KEYCLOAK_ADMIN_CLIENT_SECRET!,
 };
@@ -67,7 +66,6 @@ function validateEnvironment(): void {
   const required = [
     'KEYCLOAK_URL',
     'KEYCLOAK_REALM',
-    'KEYCLOAK_CLIENT_ID',
     'KEYCLOAK_ADMIN_CLIENT_ID',
     'KEYCLOAK_ADMIN_CLIENT_SECRET',
   ];
@@ -165,7 +163,7 @@ async function main(): Promise<void> {
 
   console.log(`Keycloak URL: ${keycloakConfig.url}`);
   console.log(`Realm: ${keycloakConfig.realm}`);
-  console.log(`Target Client: ${keycloakConfig.clientId}`);
+  console.log(`Target Client (admin): ${keycloakConfig.clientId}`);
   console.log();
 
   try {
@@ -176,7 +174,7 @@ async function main(): Promise<void> {
     console.log();
 
     // Get client UUID
-    console.log(`Looking up client '${keycloakConfig.clientId}'...`);
+    console.log(`Looking up admin client '${keycloakConfig.clientId}'...`);
     const clientUuid = await getClientUuid(adminClient);
     console.log(`Found client with UUID: ${clientUuid}`);
     console.log();
@@ -255,7 +253,7 @@ async function main(): Promise<void> {
       } else if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
         console.error('\nHint: Check that KEYCLOAK_URL is correct and Keycloak is running.');
       } else if (error.message.includes('not found')) {
-        console.error('\nHint: Check that KEYCLOAK_REALM and KEYCLOAK_CLIENT_ID are correct.');
+        console.error('\nHint: Check that KEYCLOAK_REALM and KEYCLOAK_ADMIN_CLIENT_ID are correct.');
       }
     } else {
       console.error(error);

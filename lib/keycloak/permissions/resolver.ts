@@ -107,7 +107,7 @@ async function getGroupRole(
 ): Promise<string | null> {
   try {
     const roleMappings = await getGroupRoleMappings(groupId);
-    const clientId = keycloakConfig.clientId;
+    const clientId = keycloakConfig.adminClientId;
 
     // Look for client role mappings
     const clientRoles = roleMappings.clientMappings?.[clientId]?.mappings || [];

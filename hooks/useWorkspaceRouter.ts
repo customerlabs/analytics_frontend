@@ -6,7 +6,7 @@ import { useActiveWorkspace } from '@/stores/workspaceStore';
 
 /**
  * Hook for navigation with workspace context
- * Automatically appends ?ws= parameter when needed
+ * Automatically scopes paths to the active workspace
  */
 export function useWorkspaceRouter() {
   const router = useRouter();
@@ -16,8 +16,9 @@ export function useWorkspaceRouter() {
 
   // Get current workspace from URL or store
   const currentWorkspace = useMemo(() => {
-    return searchParams.get('ws') || activeWorkspace?.id || null;
-  }, [searchParams, activeWorkspace]);
+    const match = pathname?.match(/^\/ws\/([^/]+)/);
+    return match?.[1] || searchParams.get('ws') || activeWorkspace?.id || null;
+  }, [pathname, searchParams, activeWorkspace]);
 
   /**
    * Check if a path needs workspace context
@@ -32,14 +33,7 @@ export function useWorkspaceRouter() {
       '/forgot-password',
     ];
 
-    // Account detail pages don't need ?ws= (account ID is unique)
-    const accountDetailPattern = /^\/accounts\/[^/]+/;
-
     if (noContextPaths.some((p) => path.startsWith(p))) {
-      return false;
-    }
-
-    if (accountDetailPattern.test(path) && !path.endsWith('/accounts')) {
       return false;
     }
 
@@ -57,8 +51,20 @@ export function useWorkspaceRouter() {
         return path;
       }
 
-      const separator = path.includes('?') ? '&' : '?';
-      return `${path}${separator}ws=${workspaceId}`;
+      if (path === '/') {
+        return `/ws/${workspaceId}`;
+      }
+
+      if (/^\/ws\/[^/]+/.test(path)) {
+        return path.replace(/^\/ws\/[^/]+/, `/ws/${workspaceId}`);
+      }
+
+      if (path === '/ws' || path.startsWith('/ws/')) {
+        const suffix = path === '/ws' ? '' : path.slice('/ws'.length);
+        return `/ws/${workspaceId}${suffix}`;
+      }
+
+      return `/ws/${workspaceId}${path.startsWith('/') ? path : `/${path}`}`;
     },
     [currentWorkspace, needsWorkspaceContext]
   );
@@ -89,7 +95,7 @@ export function useWorkspaceRouter() {
    * Switch workspace and navigate to dashboard
    */
   const switchWorkspace = useCallback(
-    (workspaceId: string, redirectTo: string = '/') => {
+    (workspaceId: string, redirectTo: string = '/ws') => {
       const url = buildUrl(redirectTo, workspaceId);
       router.push(url);
     },
@@ -125,5 +131,7 @@ export function useWorkspaceRouter() {
 export function useCurrentWorkspaceId(): string | null {
   const searchParams = useSearchParams();
   const activeWorkspace = useActiveWorkspace();
-  return searchParams.get('ws') || activeWorkspace?.id || null;
+  const pathname = usePathname();
+  const match = pathname?.match(/^\/ws\/([^/]+)/);
+  return match?.[1] || searchParams.get('ws') || activeWorkspace?.id || null;
 }

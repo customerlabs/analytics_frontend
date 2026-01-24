@@ -3,15 +3,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher';
+import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { UserProfile } from '@/components/auth/UserProfile';
 import type { Workspace, SessionUser } from '@/lib/keycloak/types';
+import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 interface AuthHeaderProps {
   user: SessionUser;
-  currentWorkspace: Workspace;
-  workspaces: Workspace[];
+  currentWorkspace?: Workspace;
+  workspaces?: Workspace[];
   onLogout: () => Promise<unknown>;
 }
 
@@ -22,6 +23,8 @@ export function AuthHeader({
   onLogout,
 }: AuthHeaderProps) {
   const router = useRouter();
+  const hasWorkspaceData =
+    Boolean(currentWorkspace) && Boolean(workspaces && workspaces.length > 0);
 
   const handleLogout = async () => {
     await onLogout();
@@ -32,28 +35,38 @@ export function AuthHeader({
     <header
       className={cn(
         'bg-white border-b border-gray-200',
-        'px-4 sm:px-6 py-3',
+        'fixed top-0 inset-x-0 z-50',
+        'h-14 px-4 sm:px-6',
         'flex items-center justify-between'
       )}
     >
       {/* Left Section: Logo + Workspace Switcher */}
       <div className="flex items-center gap-4">
         {/* Logo */}
-        <Link href={`/?ws=${currentWorkspace.id}`} className="flex-shrink-0">
+        <Link
+          href={
+            currentWorkspace
+              ? routes.ws.dashboard(currentWorkspace.id)
+              : '/workspaces'
+          }
+          className="shrink-0"
+        >
           <Image
-            src="/logo.png"
+            src="/logo_full.png"
             alt="Analytics"
-            width={32}
+            width={168}
             height={32}
             className="h-8 w-auto"
           />
         </Link>
 
         {/* Workspace Switcher */}
-        <WorkspaceSwitcher
-          currentWorkspace={currentWorkspace}
-          workspaces={workspaces}
-        />
+        {hasWorkspaceData && (
+          <WorkspaceSwitcher
+            currentWorkspace={currentWorkspace!}
+            workspaces={workspaces!}
+          />
+        )}
       </div>
 
       {/* Right Section: User Profile */}
@@ -77,9 +90,9 @@ export function PublicHeader() {
       )}
     >
       {/* Logo */}
-      <Link href="/" className="flex-shrink-0">
+      <Link href="/" className="shrink-0">
         <Image
-          src="/logo.png"
+          src="/logo_full.png"
           alt="Analytics"
           width={32}
           height={32}

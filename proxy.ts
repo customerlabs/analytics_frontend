@@ -6,7 +6,7 @@ import { authRoutes } from "@/config/routes";
 
 const WORKSPACE_COOKIE = "analytics_workspace";
 
-// Routes that require workspace context (will add ?ws= param)
+// Routes that require workspace context (legacy ?ws= param)
 const workspaceRoutes = ["/", "/accounts", "/settings"];
 
 export async function proxy(request: NextRequest) {
@@ -27,6 +27,7 @@ export async function proxy(request: NextRequest) {
 
   // Get session from iron-session
   const session = await getIronSession<SessionData>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     request.cookies as any,
     sessionOptions
   );
@@ -37,11 +38,12 @@ export async function proxy(request: NextRequest) {
   // Define route types
   const isAuthRoute = authRoutes.includes(pathname);
   const isWorkspacesRoute =
-    pathname === "/workspaces" || pathname.startsWith("/workspaces/");
+    pathname === "/wss" || pathname.startsWith("/wss/");
 
   // App routes that require authentication
   const isAppRoute =
     pathname === "/" ||
+    pathname.startsWith("/ws") ||
     pathname.startsWith("/accounts") ||
     pathname.startsWith("/settings");
 
@@ -53,8 +55,8 @@ export async function proxy(request: NextRequest) {
       // Redirect authenticated users away from auth pages
       const wsFromCookie = request.cookies.get(WORKSPACE_COOKIE)?.value;
       const redirectUrl = wsFromCookie
-        ? `/?ws=${wsFromCookie}`
-        : "/workspaces";
+        ? `/ws/${wsFromCookie}`
+        : "/wss";
       return NextResponse.redirect(new URL(redirectUrl, baseUrl));
     }
     // Not logged in - allow access to auth pages
@@ -84,6 +86,25 @@ export async function proxy(request: NextRequest) {
     // ============================================
     // Handle workspace context for workspace-level routes
     // ============================================
+    const isWorkspaceScoped = pathname.startsWith("/ws/");
+
+    if (isWorkspaceScoped) {
+      const wsFromPath = pathname.split("/")[2];
+      if (wsFromPath) {
+        const response = NextResponse.next();
+        response.cookies.set(WORKSPACE_COOKIE, wsFromPath, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 365, // 1 year
+          path: "/",
+        });
+        return response;
+      }
+
+      return NextResponse.next();
+    }
+
     const requiresWorkspace = workspaceRoutes.some(
       (route) => pathname === route || pathname.startsWith(route + "/")
     );
@@ -97,7 +118,7 @@ export async function proxy(request: NextRequest) {
 
       // If no workspace in URL or cookie, redirect to workspace selector
       if (!wsParam && !wsCookie) {
-        const workspacesUrl = new URL("/workspaces", baseUrl);
+        const workspacesUrl = new URL("/wss", baseUrl);
         workspacesUrl.searchParams.set("redirect", pathname);
         return NextResponse.redirect(workspacesUrl);
       }

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 interface Tab {
@@ -22,7 +22,6 @@ export function TabNavigation({
   className,
 }: TabNavigationProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   // Check if tab is active
   const isActiveTab = (tab: Tab): boolean => {
@@ -40,28 +39,20 @@ export function TabNavigation({
     return pathname.startsWith(tabPath);
   };
 
-  // Build tab URL with workspace context
+  // Build tab URL with workspace context in path
   const buildTabUrl = (tab: Tab): string => {
     const baseUrl = tab.href;
 
-    // If URL already has workspace, use as-is
-    if (baseUrl.includes('?ws=')) {
+    if (baseUrl.startsWith(`/ws/${workspaceId}`)) {
       return baseUrl;
     }
 
-    // Check if URL needs workspace context
-    const noContextPaths = ['/profile', '/workspaces'];
-    const needsContext = !noContextPaths.some((p) => baseUrl.startsWith(p));
-
-    // Account detail pages don't need workspace
-    const isAccountDetail = /^\/accounts\/[^/]+/.test(baseUrl);
-
-    if (!needsContext || isAccountDetail) {
-      return baseUrl;
+    if (baseUrl === '/ws' || baseUrl.startsWith('/ws/')) {
+      const suffix = baseUrl === '/ws' ? '' : baseUrl.slice('/ws'.length);
+      return `/ws/${workspaceId}${suffix}`;
     }
 
-    const separator = baseUrl.includes('?') ? '&' : '?';
-    return `${baseUrl}${separator}ws=${workspaceId}`;
+    return baseUrl;
   };
 
   return (
@@ -103,17 +94,17 @@ export function TabNavigation({
 export const defaultTabs: Tab[] = [
   {
     name: 'Dashboard',
-    href: '/',
-    pattern: /^\/$/,
+    href: '/ws',
+    pattern: /^\/ws\/[^/]+$/,
   },
   {
     name: 'Accounts',
-    href: '/accounts',
-    pattern: /^\/accounts/,
+    href: '/ws/accounts',
+    pattern: /^\/ws\/[^/]+\/accounts/,
   },
   {
     name: 'Settings',
-    href: '/settings',
-    pattern: /^\/settings/,
+    href: '/ws/settings',
+    pattern: /^\/ws\/[^/]+\/settings/,
   },
 ];

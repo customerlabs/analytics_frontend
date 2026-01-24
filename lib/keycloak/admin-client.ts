@@ -187,14 +187,16 @@ export async function createAccountGroup(
 }
 
 /**
- * Get client ID for the analytics app (needed for role mappings)
+ * Get client ID for the admin client (needed for role mappings)
  */
 export async function getAnalyticsClientId(): Promise<string> {
   const client = await getAdminClient();
-  const clients = await client.clients.find({ clientId: keycloakConfig.clientId });
+  const clients = await client.clients.find({
+    clientId: keycloakConfig.adminClientId,
+  });
 
   if (!clients[0]?.id) {
-    throw new Error(`Client ${keycloakConfig.clientId} not found`);
+    throw new Error(`Client ${keycloakConfig.adminClientId} not found`);
   }
 
   return clients[0].id;

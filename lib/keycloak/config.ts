@@ -4,8 +4,8 @@
 export const keycloakConfig = {
   url: process.env.KEYCLOAK_URL!,
   realm: process.env.KEYCLOAK_REALM!,
-  clientId: process.env.KEYCLOAK_CLIENT_ID!,
-  clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
+  clientId: process.env.KEYCLOAK_ADMIN_CLIENT_ID!,
+  clientSecret: process.env.KEYCLOAK_ADMIN_CLIENT_SECRET!,
   adminClientId: process.env.KEYCLOAK_ADMIN_CLIENT_ID!,
   adminClientSecret: process.env.KEYCLOAK_ADMIN_CLIENT_SECRET!,
 } as const;

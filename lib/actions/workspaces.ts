@@ -9,6 +9,7 @@ import {
 } from '@/lib/keycloak/admin-client';
 import { invalidatePermissionCache } from '@/lib/keycloak/permissions/cache';
 import { setWorkspaceCookie } from '@/lib/workspace/resolver';
+import { routes } from '@/lib/routes';
 
 interface CreateWorkspaceResult {
   success: boolean;
@@ -77,9 +78,13 @@ export async function createWorkspaceAndRedirect(
   const result = await createWorkspace(name, slug);
 
   if (result.success && result.workspaceId) {
-    redirect(`/?ws=${result.workspaceId}`);
+    redirect(routes.ws.dashboard(result.workspaceId));
   }
 
   // If failed, redirect back to new workspace page with error
-  redirect(`/workspaces/new?error=${encodeURIComponent(result.error || 'Failed to create workspace')}`);
+  redirect(
+    `/workspaces/new?error=${encodeURIComponent(
+      result.error || 'Failed to create workspace'
+    )}`
+  );
 }

@@ -15,32 +15,26 @@ export const routes = {
   },
 
   // ============================================
-  // Dashboard (needs ?ws=)
+  // Workspace App (path-scoped)
   // ============================================
-  dashboard: (ws: string) => `/?ws=${ws}`,
-
-  // ============================================
-  // Accounts
-  // ============================================
-  accounts: {
-    // List needs ?ws= (which workspace's accounts?)
-    list: (ws: string) => `/accounts?ws=${ws}`,
-
-    // Detail pages don't need ?ws= (account ID is unique)
-    detail: (accountId: string) => `/accounts/${accountId}`,
-    settings: (accountId: string) => `/accounts/${accountId}/settings`,
-    analytics: (accountId: string) => `/accounts/${accountId}/analytics`,
-  },
-
-  // ============================================
-  // Workspace settings (needs ?ws=)
-  // ============================================
-  settings: {
-    general: (ws: string) => `/settings?ws=${ws}`,
-    members: (ws: string) => `/settings/members?ws=${ws}`,
-    roles: (ws: string) => `/settings/roles?ws=${ws}`,
-    billing: (ws: string) => `/settings/billing?ws=${ws}`,
-    apiKeys: (ws: string) => `/settings/api-keys?ws=${ws}`,
+  ws: {
+    dashboard: (id: string) => `/ws/${id}`,
+    accounts: {
+      list: (id: string) => `/ws/${id}/accounts`,
+      detail: (id: string, accountId: string) =>
+        `/ws/${id}/accounts/${accountId}`,
+      settings: (id: string, accountId: string) =>
+        `/ws/${id}/accounts/${accountId}/settings`,
+      analytics: (id: string, accountId: string) =>
+        `/ws/${id}/accounts/${accountId}/analytics`,
+    },
+    settings: {
+      general: (id: string) => `/ws/${id}/settings`,
+      members: (id: string) => `/ws/${id}/settings/members`,
+      roles: (id: string) => `/ws/${id}/settings/roles`,
+      billing: (id: string) => `/ws/${id}/settings/billing`,
+      apiKeys: (id: string) => `/ws/${id}/settings/api-keys`,
+    },
   },
 
   // ============================================
@@ -53,7 +47,7 @@ export const routes = {
   },
 
   // ============================================
-  // Workspaces (switcher, no context needed)
+  // Workspaces (selector + create)
   // ============================================
   workspaces: {
     list: () => '/workspaces',
@@ -69,7 +63,7 @@ export const routes = {
       logout: () => '/api/auth/logout',
     },
     workspaces: () => '/api/workspaces',
-    accounts: (ws: string) => `/api/accounts?ws=${ws}`,
+    accounts: (id: string) => `/api/accounts?ws=${id}`,
   },
 } as const;
 
@@ -81,21 +75,17 @@ export const routes = {
  * Routes that require authentication
  */
 export const protectedRoutes = [
-  '/',
-  '/accounts',
+  '/ws',
   '/settings',
+  '/accounts',
   '/workspaces',
   '/profile',
 ];
 
 /**
- * Routes that require workspace context (?ws= parameter)
+ * Routes that require workspace context (path-scoped)
  */
-export const workspaceRequiredRoutes = [
-  '/',
-  '/accounts',
-  '/settings',
-];
+export const workspaceRequiredRoutes = ['/ws', '/settings', '/accounts'];
 
 /**
  * Routes that are public (no auth required)
@@ -139,11 +129,6 @@ export function isProtectedRoute(pathname: string): boolean {
  * Check if a path requires workspace context
  */
 export function requiresWorkspaceContext(pathname: string): boolean {
-  // Account detail pages don't need workspace context
-  if (/^\/accounts\/[^/]+/.test(pathname)) {
-    return false;
-  }
-
   // Check against workspace-independent routes
   if (workspaceIndependentRoutes.some((route) => pathname.startsWith(route))) {
     return false;

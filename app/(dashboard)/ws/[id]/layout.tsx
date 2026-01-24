@@ -19,12 +19,8 @@ export default async function WorkspaceLayout({
   modal,
   params,
 }: WorkspaceLayoutProps) {
+  // Session is guaranteed by proxy.ts - no redirect needed here
   const session = await getSession();
-
-  if (!session?.user) {
-    redirect('/login');
-  }
-
   const { id } = await params;
 
   const [workspaces, workspace] = await Promise.all([
@@ -40,7 +36,7 @@ export default async function WorkspaceLayout({
     <WorkspaceProvider workspace={workspace}>
       <div className="min-h-screen bg-slate-50">
         <AuthHeader
-          user={session.user}
+          user={session!.user}
           currentWorkspace={workspace}
           workspaces={workspaces}
           onLogout={logoutAction}

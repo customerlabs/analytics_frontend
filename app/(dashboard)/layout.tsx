@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { auth, logoutAction } from '@/lib/auth';
 import { getUserWorkspaceList, resolveWorkspace } from '@/lib/workspace/resolver';
 import { AppShell } from '@/components/layout/AppShell';
@@ -8,24 +7,19 @@ interface AppLayoutProps {
 }
 
 export default async function AppLayout({ children }: AppLayoutProps) {
-  // Get session using NextAuth
+  // Session is guaranteed by proxy.ts - no redirect needed here
   const session = await auth();
-
-  // Redirect to login if not authenticated
-  if (!session?.user) {
-    redirect('/login');
-  }
 
   const [workspaces, currentWorkspace] = await Promise.all([
     getUserWorkspaceList(),
     resolveWorkspace(),
   ]);
 
-  // Map NextAuth session user to expected format
+  // Map NextAuth session user to expected format (session guaranteed by proxy)
   const user = {
-    id: session.user.id,
-    email: session.user.email || '',
-    name: session.user.name || '',
+    id: session!.user!.id,
+    email: session!.user!.email || '',
+    name: session!.user!.name || '',
   };
 
   return (

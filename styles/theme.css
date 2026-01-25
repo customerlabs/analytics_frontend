@@ -1,1 +1,215 @@
-/* Theme styles - add later */
+/* Obsidian Glass Theme Utilities */
+
+/* ================================
+   Glass-morphism Effects
+   ================================ */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-elevated {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border-highlight);
+  box-shadow: 0 4px 30px oklch(0 0 0 / 0.3);
+}
+
+/* Noise texture overlay */
+.noise-overlay {
+  position: relative;
+}
+
+.noise-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ================================
+   Glow Effects
+   ================================ */
+
+.glow-primary {
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.glow-primary-sm {
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.glow-primary-lg {
+  box-shadow: 0 0 40px var(--primary-glow);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px var(--primary-glow);
+}
+
+.text-glow-lg {
+  text-shadow: 0 0 20px var(--primary-glow);
+}
+
+/* ================================
+   Card Utilities
+   ================================ */
+
+.card-surface {
+  @apply bg-card text-card-foreground border border-border rounded-lg;
+}
+
+.card-elevated {
+  @apply bg-card text-card-foreground border border-border rounded-lg shadow-lg;
+}
+
+.card-interactive {
+  @apply bg-card text-card-foreground border border-border rounded-lg transition-all duration-200;
+}
+
+.card-interactive:hover {
+  @apply border-primary/30 shadow-lg;
+}
+
+/* ================================
+   Focus Ring Utility
+   ================================ */
+
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background;
+}
+
+/* ================================
+   Role Badge Colors
+   ================================ */
+
+.badge-admin {
+  @apply text-primary bg-primary/10 border border-primary/20;
+}
+
+.badge-billing {
+  @apply text-amber-500 bg-amber-500/10 border border-amber-500/20;
+}
+
+.badge-member {
+  @apply text-muted-foreground bg-muted border border-border;
+}
+
+.badge-editor {
+  @apply text-emerald-500 bg-emerald-500/10 border border-emerald-500/20;
+}
+
+.badge-owner {
+  @apply text-purple-500 bg-purple-500/10 border border-purple-500/20;
+}
+
+/* ================================
+   Status Colors
+   ================================ */
+
+.status-success {
+  @apply bg-emerald-500/10 border border-emerald-500/20 text-emerald-500;
+}
+
+.status-error {
+  @apply bg-destructive/10 border border-destructive/20 text-destructive;
+}
+
+.status-warning {
+  @apply bg-amber-500/10 border border-amber-500/20 text-amber-500;
+}
+
+.status-info {
+  @apply bg-primary/10 border border-primary/20 text-primary;
+}
+
+/* ================================
+   Interactive States
+   ================================ */
+
+.interactive-item {
+  @apply transition-colors duration-150 hover:bg-accent;
+}
+
+.interactive-item-selected {
+  @apply bg-primary/10 text-primary;
+}
+
+.interactive-row {
+  @apply transition-colors duration-150 hover:bg-accent/50;
+}
+
+.interactive-row-selected {
+  @apply bg-primary/5 border-l-2 border-l-primary;
+}
+
+/* ================================
+   Button Variants
+   ================================ */
+
+.btn-glow {
+  @apply transition-all duration-200;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+/* ================================
+   Gradient Text
+   ================================ */
+
+.gradient-text-primary {
+  background: linear-gradient(135deg, var(--primary), oklch(0.65 0.22 280));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-warm {
+  background: linear-gradient(135deg, oklch(0.78 0.17 65), oklch(0.72 0.19 350));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ================================
+   Dividers
+   ================================ */
+
+.divider {
+  @apply border-t border-border;
+}
+
+.divider-subtle {
+  @apply border-t border-border/50;
+}
+
+/* ================================
+   Scrollbar Styling (Dark Mode)
+   ================================ */
+
+.dark .custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(1 0 0 / 0.15);
+  border-radius: 4px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(1 0 0 / 0.25);
+}

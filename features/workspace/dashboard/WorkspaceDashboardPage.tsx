@@ -18,8 +18,8 @@ export async function WorkspaceDashboardPage({
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Welcome to {workspace.name}
         </p>
       </div>
@@ -27,51 +27,51 @@ export async function WorkspaceDashboardPage({
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {/* Total Accounts */}
-        <div className="bg-white overflow-hidden rounded-lg border border-gray-200 px-4 py-5 sm:p-6">
-          <dt className="text-sm font-medium text-gray-500 truncate">
+        <div className="bg-card overflow-hidden rounded-lg border border-border px-4 py-5 sm:p-6">
+          <dt className="text-sm font-medium text-muted-foreground truncate">
             Total Accounts
           </dt>
-          <dd className="mt-1 text-3xl font-semibold text-gray-900">
+          <dd className="mt-1 text-3xl font-semibold text-foreground">
             {accounts.length}
           </dd>
         </div>
 
         {/* Workspace Role */}
-        <div className="bg-white overflow-hidden rounded-lg border border-gray-200 px-4 py-5 sm:p-6">
-          <dt className="text-sm font-medium text-gray-500 truncate">
+        <div className="bg-card overflow-hidden rounded-lg border border-border px-4 py-5 sm:p-6">
+          <dt className="text-sm font-medium text-muted-foreground truncate">
             Your Role
           </dt>
-          <dd className="mt-1 text-3xl font-semibold text-gray-900 capitalize">
+          <dd className="mt-1 text-3xl font-semibold text-foreground capitalize">
             {workspace.role.replace('workspace-', '')}
           </dd>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white overflow-hidden rounded-lg border border-gray-200 px-4 py-5 sm:p-6">
-          <dt className="text-sm font-medium text-gray-500 truncate">
+        <div className="bg-card overflow-hidden rounded-lg border border-border px-4 py-5 sm:p-6">
+          <dt className="text-sm font-medium text-muted-foreground truncate">
             Workspace
           </dt>
-          <dd className="mt-1 text-lg font-semibold text-gray-900 truncate">
+          <dd className="mt-1 text-lg font-semibold text-foreground truncate">
             {workspace.name}
           </dd>
         </div>
       </div>
 
       {/* Accounts List */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Your Accounts</h2>
-          <p className="mt-1 text-sm text-gray-500">
+      <div className="bg-card rounded-lg border border-border">
+        <div className="px-4 py-5 sm:px-6 border-b border-border">
+          <h2 className="text-lg font-medium text-foreground">Your Accounts</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Accounts you have access to in this workspace
           </p>
         </div>
 
         {accounts.length === 0 ? (
           <div className="px-4 py-12 text-center">
-            <p className="text-sm text-gray-500">No accounts yet</p>
+            <p className="text-sm text-muted-foreground">No accounts yet</p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-border">
             {accounts.map((account) => (
               <li key={account.accountId}>
                 <Link
@@ -79,19 +79,19 @@ export async function WorkspaceDashboardPage({
                     workspace.slug,
                     account.accountId
                   )}
-                  className="block px-4 py-4 hover:bg-gray-50 transition-colors"
+                  className="block px-4 py-4 hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-foreground">
                         {account.accountId}
                       </p>
-                      <p className="text-sm text-gray-500 capitalize">
+                      <p className="text-sm text-muted-foreground capitalize">
                         {account.role.replace('account-', '')}
                       </p>
                     </div>
                     <svg
-                      className="h-5 w-5 text-gray-400"
+                      className="h-5 w-5 text-muted-foreground"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

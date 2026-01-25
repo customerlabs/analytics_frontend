@@ -16,9 +16,9 @@ interface WorkspaceSwitcherProps {
 
 // Hoist static lookup tables outside component to prevent recreation on every render
 const ROLE_COLORS: Record<string, string> = {
-  'workspace-admin': 'text-blue-600 bg-blue-50',
-  'workspace-billing': 'text-amber-600 bg-amber-50',
-  'workspace-member': 'text-gray-600 bg-gray-50',
+  'workspace-admin': 'badge-admin',
+  'workspace-billing': 'badge-billing',
+  'workspace-member': 'badge-member',
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -33,7 +33,7 @@ function RoleBadge({ role }: { role: string }) {
     <span
       className={cn(
         'text-xs px-1.5 py-0.5 rounded font-medium',
-        ROLE_COLORS[role] || 'text-gray-600 bg-gray-50'
+        ROLE_COLORS[role] || 'badge-member'
       )}
     >
       {ROLE_LABELS[role] || role}
@@ -88,15 +88,15 @@ export function WorkspaceSwitcher({
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'flex items-center gap-2 px-3 py-2 rounded-lg',
-          'bg-gray-100 hover:bg-gray-200 transition-colors',
-          'text-sm font-medium text-gray-900',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1'
+          'bg-secondary hover:bg-accent transition-colors',
+          'text-sm font-medium text-foreground',
+          'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background'
         )}
       >
         <span className="max-w-[180px] truncate">{currentWorkspace.name}</span>
         <ChevronDown
           className={cn(
-            'w-4 h-4 text-gray-500 transition-transform',
+            'w-4 h-4 text-muted-foreground transition-transform',
             isOpen && 'rotate-180'
           )}
         />
@@ -107,7 +107,7 @@ export function WorkspaceSwitcher({
         <div
           className={cn(
             'absolute top-full left-0 mt-1 w-72',
-            'bg-white rounded-lg shadow-xl border border-gray-200',
+            'bg-card rounded-lg shadow-xl border border-border',
             'z-50 py-1'
           )}
         >
@@ -119,8 +119,8 @@ export function WorkspaceSwitcher({
                 onClick={() => handleSelectWorkspace(workspace)}
                 className={cn(
                   'w-full flex items-center justify-between px-3 py-2',
-                  'text-left hover:bg-gray-50 transition-colors',
-                  workspace.id === currentWorkspace.id && 'bg-blue-50'
+                  'text-left hover:bg-accent transition-colors',
+                  workspace.id === currentWorkspace.id && 'bg-primary/10'
                 )}
               >
                 <div className="flex-1 min-w-0">
@@ -129,8 +129,8 @@ export function WorkspaceSwitcher({
                       className={cn(
                         'text-sm font-medium truncate',
                         workspace.id === currentWorkspace.id
-                          ? 'text-blue-600'
-                          : 'text-gray-900'
+                          ? 'text-primary'
+                          : 'text-foreground'
                       )}
                     >
                       {workspace.name}
@@ -141,14 +141,14 @@ export function WorkspaceSwitcher({
                   </div>
                 </div>
                 {workspace.id === currentWorkspace.id && (
-                  <Check className="w-4 h-4 text-blue-600 shrink-0" />
+                  <Check className="w-4 h-4 text-primary shrink-0" />
                 )}
               </button>
             ))}
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-100 my-1" />
+          <div className="border-t border-border my-1" />
 
           {/* Create New Workspace */}
           <button
@@ -158,7 +158,7 @@ export function WorkspaceSwitcher({
             }}
             className={cn(
               'w-full flex items-center gap-2 px-3 py-2',
-              'text-left text-sm text-green-600 hover:bg-green-50 transition-colors'
+              'text-left text-sm text-emerald-500 hover:bg-emerald-500/10 transition-colors'
             )}
           >
             <Plus className="w-4 h-4" />

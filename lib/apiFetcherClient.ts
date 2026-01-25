@@ -13,7 +13,7 @@ export async function fetchFromAPIClient<T>(
   endpoint: string,
   options?: FetchClientOptions
 ): Promise<T> {
-  const defaultBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://open.dirtyvocal.com';
+  const defaultBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const baseUrl = options?.baseUrl || defaultBaseUrl;
   const url = endpoint.startsWith('http') ? endpoint : new URL(endpoint, baseUrl).toString();
 

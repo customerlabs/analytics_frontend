@@ -37,8 +37,8 @@ export function LoginForm() {
       <form action={formAction} className="space-y-4">
         {/* Show success message from URL */}
         {messageFromUrl === "account_created" && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-600">
+          <div className="p-3 status-success rounded-lg">
+            <p className="text-sm">
               Account created successfully! Please sign in.
             </p>
           </div>
@@ -46,8 +46,8 @@ export function LoginForm() {
 
         {/* Show error from URL or state */}
         {(errorFromUrl || state?.error) && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">
+          <div className="p-3 status-error rounded-lg">
+            <p className="text-sm">
               {errorFromUrl || state?.error}
             </p>
           </div>

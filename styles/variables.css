@@ -1,1 +1,53 @@
-/* CSS variables - add later */
+/* Obsidian Glass Theme - CSS Variables */
+
+:root {
+  /* ================================
+     Animation Durations
+     ================================ */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 700ms;
+
+  /* ================================
+     Blur Amounts
+     ================================ */
+  --blur-sm: 8px;
+  --blur-md: 16px;
+  --blur-lg: 24px;
+  --blur-xl: 40px;
+
+  /* ================================
+     Spacing Scale (supplementary)
+     ================================ */
+  --space-section: 2rem;
+  --space-card: 1.5rem;
+  --space-element: 1rem;
+
+  /* ================================
+     Z-Index Scale
+     ================================ */
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-modal-backdrop: 200;
+  --z-modal: 210;
+  --z-popover: 300;
+  --z-tooltip: 400;
+
+  /* ================================
+     Transition Timing
+     ================================ */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ================================
+     Glass-morphism defaults (light mode)
+     ================================ */
+  --glass-bg: oklch(1 0 0 / 0.8);
+  --glass-border: oklch(0 0 0 / 0.08);
+  --glass-border-highlight: oklch(0 0 0 / 0.12);
+  --primary-glow: oklch(0.55 0.2 250 / 0.3);
+  --warning-glow: oklch(0.78 0.17 65 / 0.3);
+}

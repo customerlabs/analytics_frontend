@@ -58,7 +58,7 @@ export function TabNavigation({
   return (
     <nav
       className={cn(
-        'bg-white border-b border-gray-200',
+        'bg-background border-b border-border',
         'px-4 sm:px-6',
         className
       )}
@@ -75,8 +75,8 @@ export function TabNavigation({
               className={cn(
                 'px-4 py-3 text-sm font-medium border-b-2 transition-colors',
                 isActive
-                  ? 'text-gray-900 border-gray-900'
-                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+                  ? 'text-foreground border-primary'
+                  : 'text-muted-foreground border-transparent hover:text-foreground hover:border-muted-foreground'
               )}
             >
               {tab.name}

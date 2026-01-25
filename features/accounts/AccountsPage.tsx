@@ -19,8 +19,8 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Accounts</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-semibold text-foreground">Accounts</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Manage accounts in {workspace.name}
           </p>
         </div>
@@ -28,9 +28,9 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
         <button
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-lg',
-            'bg-blue-600 text-white text-sm font-medium',
-            'hover:bg-blue-700 transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+            'bg-primary text-primary-foreground text-sm font-medium',
+            'hover:bg-primary/90 transition-colors',
+            'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
           )}
         >
           <Plus className="w-4 h-4" />
@@ -40,10 +40,10 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
 
       {/* Accounts Grid */}
       {accounts.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 px-4 py-12 text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+        <div className="bg-card rounded-lg border border-border px-4 py-12 text-center">
+          <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
             <svg
-              className="w-6 h-6 text-gray-400"
+              className="w-6 h-6 text-muted-foreground"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -56,15 +56,15 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
               />
             </svg>
           </div>
-          <h3 className="text-sm font-medium text-gray-900">No accounts</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <h3 className="text-sm font-medium text-foreground">No accounts</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             Get started by adding your first account.
           </p>
           <button
             className={cn(
               'mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg',
-              'bg-blue-600 text-white text-sm font-medium',
-              'hover:bg-blue-700 transition-colors'
+              'bg-primary text-primary-foreground text-sm font-medium',
+              'hover:bg-primary/90 transition-colors'
             )}
           >
             <Plus className="w-4 h-4" />
@@ -72,19 +72,19 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/50">
               <tr>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Account
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Your Role
                 </th>
@@ -93,16 +93,16 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-border">
               {accounts.map((account) => (
-                <tr key={account.accountId} className="hover:bg-gray-50">
+                <tr key={account.accountId} className="hover:bg-accent transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Link
                       href={routes.ws.accounts.detail(
                         workspace.slug,
                         account.accountId
                       )}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                      className="text-sm font-medium text-primary hover:text-primary/80"
                     >
                       {account.accountId}
                     </Link>
@@ -112,10 +112,10 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
                       className={cn(
                         'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize',
                         account.role === 'account-admin'
-                          ? 'bg-blue-100 text-blue-800'
+                          ? 'badge-admin'
                           : account.role === 'account-editor'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'badge-editor'
+                            : 'badge-member'
                       )}
                     >
                       {account.role.replace('account-', '')}
@@ -127,7 +127,7 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
                         workspace.slug,
                         account.accountId
                       )}
-                      className="text-gray-600 hover:text-gray-900"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       Settings
                     </Link>

@@ -98,8 +98,8 @@ export function SignupForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Show error from URL or general error */}
         {(errorFromUrl || errors.general) && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">
+          <div className="p-3 status-error rounded-lg">
+            <p className="text-sm">
               {errorFromUrl || errors.general}
             </p>
           </div>

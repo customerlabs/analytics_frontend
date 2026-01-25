@@ -34,7 +34,7 @@ export default async function WorkspaceLayout({
 
   return (
     <WorkspaceProvider workspace={workspace}>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-background">
         <AuthHeader
           user={session!.user}
           currentWorkspace={workspace}

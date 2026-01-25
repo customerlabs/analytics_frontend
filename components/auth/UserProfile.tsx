@@ -13,12 +13,12 @@ interface UserProfileProps {
 
 // Hoist static data outside component to prevent recreation on every render
 const AVATAR_COLORS = [
-  'bg-blue-100 text-blue-600',
-  'bg-green-100 text-green-600',
-  'bg-amber-100 text-amber-600',
-  'bg-purple-100 text-purple-600',
-  'bg-pink-100 text-pink-600',
-  'bg-indigo-100 text-indigo-600',
+  'bg-primary/20 text-primary',
+  'bg-emerald-500/20 text-emerald-500',
+  'bg-amber-500/20 text-amber-500',
+  'bg-purple-500/20 text-purple-500',
+  'bg-pink-500/20 text-pink-500',
+  'bg-indigo-500/20 text-indigo-500',
 ] as const;
 
 // Pure functions moved outside component
@@ -63,8 +63,8 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'flex items-center gap-2 p-1 rounded-lg',
-          'hover:bg-gray-100 transition-colors',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1'
+          'hover:bg-accent transition-colors',
+          'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background'
         )}
       >
         {/* Avatar */}
@@ -80,14 +80,14 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
 
         {/* User info */}
         <div className="hidden sm:block text-left">
-          <div className="text-sm font-medium text-gray-900 max-w-[120px] truncate">
+          <div className="text-sm font-medium text-foreground max-w-[120px] truncate">
             {user.name || 'User'}
           </div>
         </div>
 
         <ChevronDown
           className={cn(
-            'w-4 h-4 text-gray-500 transition-transform hidden sm:block',
+            'w-4 h-4 text-muted-foreground transition-transform hidden sm:block',
             isOpen && 'rotate-180'
           )}
         />
@@ -98,14 +98,14 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
         <div
           className={cn(
             'absolute top-full right-0 mt-1 w-56',
-            'bg-white rounded-lg shadow-xl border border-gray-200',
+            'bg-card rounded-lg shadow-xl border border-border',
             'z-50 py-1'
           )}
         >
           {/* User Info Header */}
-          <div className="px-3 py-2 border-b border-gray-100">
-            <div className="text-sm font-medium text-gray-900">{user.name || 'User'}</div>
-            <div className="text-xs text-gray-500 truncate">{user.email || ''}</div>
+          <div className="px-3 py-2 border-b border-border">
+            <div className="text-sm font-medium text-foreground">{user.name || 'User'}</div>
+            <div className="text-xs text-muted-foreground truncate">{user.email || ''}</div>
           </div>
 
           {/* Menu Items */}
@@ -114,7 +114,7 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
               href="/profile"
               className={cn(
                 'flex items-center gap-2 px-3 py-2',
-                'text-sm text-gray-700 hover:bg-gray-50 transition-colors'
+                'text-sm text-foreground hover:bg-accent transition-colors'
               )}
               onClick={() => setIsOpen(false)}
             >
@@ -126,7 +126,7 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
               href="/profile/preferences"
               className={cn(
                 'flex items-center gap-2 px-3 py-2',
-                'text-sm text-gray-700 hover:bg-gray-50 transition-colors'
+                'text-sm text-foreground hover:bg-accent transition-colors'
               )}
               onClick={() => setIsOpen(false)}
             >
@@ -136,7 +136,7 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-100" />
+          <div className="border-t border-border" />
 
           {/* Logout */}
           <div className="py-1">
@@ -147,7 +147,7 @@ export function UserProfile({ user, onLogout, className }: UserProfileProps) {
               }}
               className={cn(
                 'w-full flex items-center gap-2 px-3 py-2',
-                'text-sm text-red-600 hover:bg-red-50 transition-colors'
+                'text-sm text-destructive hover:bg-destructive/10 transition-colors'
               )}
             >
               <LogOut className="w-4 h-4" />

@@ -1,22 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { useCreateWorkspaceSheet } from '@/hooks/useCreateWorkspaceSheet';
 
 export function NoWorkspacesView() {
-  const { open: openCreateSheet, isOpen } = useCreateWorkspaceSheet();
-
-  // Auto-open the create workspace sheet on mount
-  useEffect(() => {
-    if (!isOpen) {
-      // Small delay to ensure sheet component is mounted
-      const timer = setTimeout(() => {
-        openCreateSheet();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [openCreateSheet, isOpen]);
+  const { open: openCreateSheet } = useCreateWorkspaceSheet();
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4">

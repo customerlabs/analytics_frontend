@@ -21,8 +21,7 @@ export function AppShell({
   onLogout,
 }: AppShellProps) {
   const pathname = usePathname();
-  const showHeader =
-    pathname !== '/ws' && !pathname.startsWith('/ws/');
+  const showHeader = !pathname.startsWith('/ws/');
 
   return (
     <>

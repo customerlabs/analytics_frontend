@@ -77,13 +77,15 @@ export async function fetchFromAPI<T>(
   }
 
   // Add caching options for GET requests (skip for mutations)
-  const isMutation = options?.method && options.method !== 'GET';
-  if (!isMutation && !options?.skipCache) {
-    fetchOptions.next = {
-      revalidate: options?.revalidate ?? 300, // Default 5-minute cache
-      tags: options?.tags ?? [resourceType], // Auto-tag by resource type
-    };
-  }
+  // TODO: Re-enable caching after debugging
+  // const isMutation = options?.method && options.method !== 'GET';
+  // if (!isMutation && !options?.skipCache) {
+  //   fetchOptions.next = {
+  //     revalidate: options?.revalidate ?? 300, // Default 5-minute cache
+  //     tags: options?.tags ?? [resourceType], // Auto-tag by resource type
+  //   };
+  // }
+  fetchOptions.cache = 'no-store';
 
   const res = await fetch(url, fetchOptions);
 

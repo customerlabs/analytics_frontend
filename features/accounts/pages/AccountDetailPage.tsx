@@ -1,11 +1,11 @@
-import Link from 'next/link';
-import { ArrowLeft, Settings } from 'lucide-react';
-import { redirect } from 'next/navigation';
-import { resolveWorkspaceOrRedirect } from '@/lib/workspace/resolver';
-import { auth } from '@/lib/auth';
-import { routes } from '@/lib/routes';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import Link from "next/link";
+import { ArrowLeft, Settings } from "lucide-react";
+import { redirect } from "next/navigation";
+import { resolveWorkspaceOrRedirect } from "@/lib/workspace/resolver";
+import { auth } from "@/lib/auth";
+import { routes } from "@/lib/routes";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface AccountDetailPageProps {
   workspaceId: string;
@@ -19,20 +19,23 @@ export async function AccountDetailPage({
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   const workspace = await resolveWorkspaceOrRedirect(workspaceId);
 
   // TODO: Fetch role from backend API when available
-  const role = 'account-admin';
+  const role = "account-admin";
 
-  const isAdmin = role === 'account-admin';
+  const isAdmin = role === "account-admin";
 
   return (
     <div className="space-y-6">
       {/* Back Link */}
-      <Link href={routes.ws.accounts.list(workspace.slug)} className="back-link">
+      <Link
+        href={routes.ws.accounts.list(workspace.slug)}
+        className="back-link"
+      >
         <ArrowLeft className="w-4 h-4" />
         Back to Accounts
       </Link>
@@ -61,27 +64,33 @@ export async function AccountDetailPage({
           <h2 className="settings-card-header-title mb-4">Overview</h2>
           <dl className="space-y-4">
             <div>
-              <dt className="text-sm font-medium text-muted-foreground">Account ID</dt>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Account ID
+              </dt>
               <dd className="mt-1 text-sm text-foreground">{accountId}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-muted-foreground">Workspace</dt>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Workspace
+              </dt>
               <dd className="mt-1 text-sm text-foreground">{workspace.name}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-muted-foreground">Your Role</dt>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Your Role
+              </dt>
               <dd className="mt-1">
                 <span
                   className={cn(
-                    'badge-role',
-                    role === 'account-admin'
-                      ? 'badge-admin'
-                      : role === 'account-editor'
-                        ? 'badge-editor'
-                        : 'badge-member'
+                    "badge-role",
+                    role === "account-admin"
+                      ? "badge-admin"
+                      : role === "account-editor"
+                        ? "badge-editor"
+                        : "badge-member"
                   )}
                 >
-                  {role.replace('account-', '')}
+                  {role.replace("account-", "")}
                 </span>
               </dd>
             </div>

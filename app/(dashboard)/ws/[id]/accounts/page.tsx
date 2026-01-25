@@ -1,4 +1,4 @@
-import { AccountsPage } from '@/features/accounts/AccountsPage';
+import { AccountsPage } from '@/features/accounts/pages';
 
 interface AccountsRouteProps {
   params: Promise<{ id: string }>;

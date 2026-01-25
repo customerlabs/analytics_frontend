@@ -1,4 +1,4 @@
-import { AccountDetailPage } from '@/features/accounts/AccountDetailPage';
+import { AccountDetailPage } from '@/features/accounts/pages';
 
 interface AccountDetailRouteProps {
   params: Promise<{ id: string; accountId: string }>;

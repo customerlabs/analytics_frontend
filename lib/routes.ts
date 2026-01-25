@@ -21,6 +21,9 @@ export const routes = {
     dashboard: (id: string) => `/ws/${id}`,
     accounts: {
       list: (id: string) => `/ws/${id}/accounts`,
+      selectSource: (id: string) => `/ws/${id}/accounts/new`,
+      create: (id: string, templateSlug: string) =>
+        `/ws/${id}/accounts/new?template=${templateSlug}`,
       detail: (id: string, accountId: string) =>
         `/ws/${id}/accounts/${accountId}`,
       settings: (id: string, accountId: string) =>

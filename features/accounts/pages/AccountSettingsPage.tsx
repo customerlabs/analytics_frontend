@@ -1,10 +1,10 @@
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { redirect } from 'next/navigation';
-import { resolveWorkspaceOrRedirect } from '@/lib/workspace/resolver';
-import { auth } from '@/lib/auth';
-import { routes } from '@/lib/routes';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { redirect } from "next/navigation";
+import { resolveWorkspaceOrRedirect } from "@/lib/workspace/resolver";
+import { auth } from "@/lib/auth";
+import { routes } from "@/lib/routes";
+import { Button } from "@/components/ui/button";
 
 interface AccountSettingsPageProps {
   workspaceId: string;
@@ -18,13 +18,13 @@ export async function AccountSettingsPage({
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   const workspace = await resolveWorkspaceOrRedirect(workspaceId);
 
   // TODO: Fetch role from backend API when available
-  const role = 'account-admin';
+  const role = "account-admin";
 
   return (
     <div className="space-y-6">
@@ -74,7 +74,7 @@ export async function AccountSettingsPage({
       </div>
 
       {/* Danger Zone */}
-      {role === 'account-admin' && (
+      {role === "account-admin" && (
         <div className="danger-card">
           <div className="danger-card-header">
             <h2 className="danger-card-title">Danger Zone</h2>

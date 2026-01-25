@@ -1,4 +1,4 @@
-import { AccountSettingsPage } from '@/features/accounts/AccountSettingsPage';
+import { AccountSettingsPage } from '@/features/accounts/pages';
 
 interface AccountSettingsRouteProps {
   params: Promise<{ id: string; accountId: string }>;

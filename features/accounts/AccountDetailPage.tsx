@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { resolveWorkspaceOrRedirect } from '@/lib/workspace/resolver';
 import { auth } from '@/lib/auth';
 import { routes } from '@/lib/routes';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface AccountDetailPageProps {
@@ -31,63 +32,53 @@ export async function AccountDetailPage({
   return (
     <div className="space-y-6">
       {/* Back Link */}
-      <Link
-        href={routes.ws.accounts.list(workspace.slug)}
-        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-      >
+      <Link href={routes.ws.accounts.list(workspace.slug)} className="back-link">
         <ArrowLeft className="w-4 h-4" />
         Back to Accounts
       </Link>
 
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{accountId}</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Workspace: {workspace.name}
-          </p>
+        <div className="page-header">
+          <h1 className="page-title">{accountId}</h1>
+          <p className="page-subtitle">Workspace: {workspace.name}</p>
         </div>
 
         {isAdmin && (
-          <Link
-            href={routes.ws.accounts.settings(workspace.slug, accountId)}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg',
-              'bg-white border border-gray-300 text-gray-700 text-sm font-medium',
-              'hover:bg-gray-50 transition-colors'
-            )}
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </Link>
+          <Button variant="outline" asChild>
+            <Link href={routes.ws.accounts.settings(workspace.slug, accountId)}>
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </Link>
+          </Button>
         )}
       </div>
 
       {/* Account Info */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Overview Card */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Overview</h2>
+        <div className="settings-card p-6">
+          <h2 className="settings-card-header-title mb-4">Overview</h2>
           <dl className="space-y-4">
             <div>
-              <dt className="text-sm font-medium text-gray-500">Account ID</dt>
-              <dd className="mt-1 text-sm text-gray-900">{accountId}</dd>
+              <dt className="text-sm font-medium text-muted-foreground">Account ID</dt>
+              <dd className="mt-1 text-sm text-foreground">{accountId}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Workspace</dt>
-              <dd className="mt-1 text-sm text-gray-900">{workspace.name}</dd>
+              <dt className="text-sm font-medium text-muted-foreground">Workspace</dt>
+              <dd className="mt-1 text-sm text-foreground">{workspace.name}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Your Role</dt>
+              <dt className="text-sm font-medium text-muted-foreground">Your Role</dt>
               <dd className="mt-1">
                 <span
                   className={cn(
-                    'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize',
+                    'badge-role',
                     role === 'account-admin'
-                      ? 'bg-blue-100 text-blue-800'
+                      ? 'badge-admin'
                       : role === 'account-editor'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'badge-editor'
+                        : 'badge-member'
                   )}
                 >
                   {role.replace('account-', '')}
@@ -98,19 +89,15 @@ export async function AccountDetailPage({
         </div>
 
         {/* Quick Actions Card */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            Quick Actions
-          </h2>
+        <div className="settings-card p-6">
+          <h2 className="settings-card-header-title mb-4">Quick Actions</h2>
           <div className="space-y-3">
             <Link
               href={routes.ws.accounts.settings(workspace.slug, accountId)}
-              className="block w-full px-4 py-3 text-left rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="action-link"
             >
-              <p className="text-sm font-medium text-gray-900">
-                Account Settings
-              </p>
-              <p className="text-sm text-gray-500">
+              <p className="action-link-title">Account Settings</p>
+              <p className="action-link-description">
                 Configure account preferences
               </p>
             </Link>

@@ -1,6 +1,5 @@
 import { resolveWorkspaceOrRedirect } from '@/lib/workspace/resolver';
-import { routes } from '@/lib/routes';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface WorkspaceSettingsPageProps {
   workspaceId: string;
@@ -14,52 +13,37 @@ export async function WorkspaceSettingsPage({
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Workspace Settings
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Manage settings for {workspace.name}
-        </p>
+      <div className="page-header">
+        <h1 className="page-title">Workspace Settings</h1>
+        <p className="page-subtitle">Manage settings for {workspace.name}</p>
       </div>
 
       {/* Settings Form */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">General</h2>
-          <p className="mt-1 text-sm text-gray-500">
+      <div className="settings-card">
+        <div className="settings-card-header">
+          <h2 className="settings-card-header-title">General</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Basic workspace configuration
           </p>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="settings-card-body">
           {/* Workspace Name */}
-          <div>
-            <label
-              htmlFor="workspaceName"
-              className="block text-sm font-medium text-gray-700"
-            >
+          <div className="form-group">
+            <label htmlFor="workspaceName" className="form-label">
               Workspace Name
             </label>
             <input
               type="text"
               id="workspaceName"
               defaultValue={workspace.name}
-              className={cn(
-                'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2',
-                'text-sm text-gray-900',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                'disabled:bg-gray-50 disabled:text-gray-500'
-              )}
+              className="form-input"
             />
           </div>
 
           {/* Workspace Slug */}
-          <div>
-            <label
-              htmlFor="workspaceSlug"
-              className="block text-sm font-medium text-gray-700"
-            >
+          <div className="form-group">
+            <label htmlFor="workspaceSlug" className="form-label">
               Workspace ID
             </label>
             <input
@@ -67,62 +51,40 @@ export async function WorkspaceSettingsPage({
               id="workspaceSlug"
               defaultValue={workspace.slug}
               disabled
-              className={cn(
-                'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2',
-                'text-sm text-gray-500 bg-gray-50'
-              )}
+              className="form-input"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              The workspace ID cannot be changed
-            </p>
+            <p className="form-helper">The workspace ID cannot be changed</p>
           </div>
 
           {/* Save Button */}
           <div className="flex justify-end">
-            <button
-              type="button"
-              className={cn(
-                'px-4 py-2 rounded-lg',
-                'bg-blue-600 text-white text-sm font-medium',
-                'hover:bg-blue-700 transition-colors',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-              )}
-            >
-              Save Changes
-            </button>
+            <Button type="button">Save Changes</Button>
           </div>
         </div>
       </div>
 
       {/* Danger Zone */}
-      <div className="bg-white rounded-lg border border-red-200">
-        <div className="p-6 border-b border-red-200">
-          <h2 className="text-lg font-medium text-red-600">Danger Zone</h2>
-          <p className="mt-1 text-sm text-gray-500">
+      <div className="danger-card">
+        <div className="danger-card-header">
+          <h2 className="danger-card-title">Danger Zone</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Irreversible actions for this workspace
           </p>
         </div>
 
-        <div className="p-6">
+        <div className="danger-card-body">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-medium text-gray-900">
+              <h3 className="text-sm font-medium text-foreground">
                 Delete Workspace
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Permanently delete this workspace and all its accounts
               </p>
             </div>
-            <button
-              type="button"
-              className={cn(
-                'px-4 py-2 rounded-lg',
-                'bg-red-600 text-white text-sm font-medium',
-                'hover:bg-red-700 transition-colors'
-              )}
-            >
+            <Button type="button" variant="destructive">
               Delete
-            </button>
+            </Button>
           </div>
         </div>
       </div>

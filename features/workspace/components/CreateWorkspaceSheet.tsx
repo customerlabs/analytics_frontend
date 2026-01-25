@@ -170,8 +170,8 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
         <form onSubmit={handleSubmit} className="mt-6 space-y-6 px-4">
           {/* Error Display */}
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="p-3 status-error rounded-lg">
+              <p className="text-sm">{error}</p>
             </div>
           )}
 
@@ -191,7 +191,7 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
               }}
               disabled={isLoading}
             />
-            <p className="text-xs text-gray-500">
+            <p className="form-helper">
               This is the display name for your workspace
             </p>
           </div>
@@ -200,7 +200,7 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
           <div className="space-y-2">
             <Label htmlFor="sheet-slug">Workspace URL</Label>
             <div className="flex items-center">
-              <span className="text-sm text-gray-500 mr-2">{displayDomain}/ws/</span>
+              <span className="text-sm text-muted-foreground mr-2">{displayDomain}/ws/</span>
               <div className="relative flex-1">
                 <Input
                   id="sheet-slug"
@@ -216,15 +216,15 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
                   disabled={isLoading}
                   className={cn(
                     'pr-8',
-                    slugStatus === 'taken' && 'border-red-500 focus-visible:ring-red-500',
-                    slugStatus === 'available' && 'border-green-500 focus-visible:ring-green-500'
+                    slugStatus === 'taken' && 'border-destructive focus-visible:ring-destructive',
+                    slugStatus === 'available' && 'border-emerald-500 focus-visible:ring-emerald-500'
                   )}
                 />
                 {/* Status indicator */}
                 {slug.length >= 3 && slugStatus !== 'idle' && (
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
                     {slugStatus === 'checking' && (
-                      <Loader2 className="size-4 animate-spin text-gray-400" />
+                      <Loader2 className="size-4 animate-spin text-muted-foreground" />
                     )}
                     {slugStatus === 'available' && (
                       <Check className="size-4 text-green-500" />
@@ -238,16 +238,16 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
             </div>
             {/* Status message */}
             {slugStatus === 'taken' && (
-              <p className="text-xs text-red-600">
+              <p className="text-xs text-destructive">
                 This workspace URL is already taken. Please choose a different one.
               </p>
             )}
             {slugStatus === 'available' && (
-              <p className="text-xs text-green-600">This workspace URL is available!</p>
+              <p className="text-xs text-emerald-500">This workspace URL is available!</p>
             )}
-            {slugCheckError && <p className="text-xs text-amber-600">{slugCheckError}</p>}
+            {slugCheckError && <p className="text-xs text-amber-500">{slugCheckError}</p>}
             {slugStatus === 'idle' && !slugCheckError && (
-              <p className="text-xs text-gray-500">
+              <p className="form-helper">
                 This will be used in URLs to identify your workspace
               </p>
             )}

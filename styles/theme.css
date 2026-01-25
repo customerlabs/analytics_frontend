@@ -213,3 +213,152 @@
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: oklch(1 0 0 / 0.25);
 }
+
+/* ================================
+   Page Structure
+   ================================ */
+
+.page-header {
+  @apply space-y-2;
+}
+
+.page-title {
+  @apply text-2xl font-semibold text-foreground;
+}
+
+.page-subtitle {
+  @apply text-sm text-muted-foreground;
+}
+
+/* ================================
+   Settings Card Pattern
+   ================================ */
+
+.settings-card {
+  @apply bg-card rounded-lg border border-border;
+}
+
+.settings-card-header {
+  @apply p-6 border-b border-border;
+}
+
+.settings-card-header-title {
+  @apply text-lg font-medium text-foreground;
+}
+
+.settings-card-body {
+  @apply p-6 space-y-6;
+}
+
+/* ================================
+   Form Group Pattern
+   ================================ */
+
+.form-group {
+  @apply space-y-2;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-foreground;
+}
+
+.form-helper {
+  @apply text-xs text-muted-foreground;
+}
+
+.form-input {
+  @apply mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground bg-background;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background;
+}
+
+.form-input:disabled {
+  @apply bg-muted text-muted-foreground;
+}
+
+/* ================================
+   Data Table Pattern
+   ================================ */
+
+.data-table {
+  @apply w-full;
+}
+
+.data-table-wrapper {
+  @apply bg-card rounded-lg border border-border overflow-hidden;
+}
+
+.data-table thead {
+  @apply bg-secondary;
+}
+
+.data-table th {
+  @apply px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider;
+}
+
+.data-table tbody {
+  @apply divide-y divide-border;
+}
+
+.data-table tr {
+  @apply hover:bg-secondary/50 transition-colors;
+}
+
+.data-table td {
+  @apply px-6 py-4 whitespace-nowrap text-sm;
+}
+
+/* ================================
+   Badge Base (supplement existing)
+   ================================ */
+
+.badge-base {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-role {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize;
+}
+
+/* ================================
+   Danger Zone
+   ================================ */
+
+.danger-card {
+  @apply bg-card rounded-lg border border-destructive/30;
+}
+
+.danger-card-header {
+  @apply p-6 border-b border-destructive/30;
+}
+
+.danger-card-title {
+  @apply text-lg font-medium text-destructive;
+}
+
+.danger-card-body {
+  @apply p-6;
+}
+
+/* ================================
+   Action Link
+   ================================ */
+
+.action-link {
+  @apply block w-full px-4 py-3 text-left rounded-lg border border-border hover:bg-secondary/50 transition-colors;
+}
+
+.action-link-title {
+  @apply text-sm font-medium text-foreground;
+}
+
+.action-link-description {
+  @apply text-sm text-muted-foreground;
+}
+
+/* ================================
+   Back Link
+   ================================ */
+
+.back-link {
+  @apply inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors;
+}

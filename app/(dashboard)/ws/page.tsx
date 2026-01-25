@@ -5,15 +5,8 @@ import { NoWorkspacesView } from './NoWorkspacesView';
 
 export const dynamic = 'force-dynamic';
 
-interface WorkspaceIndexProps {
-  searchParams: Promise<{ ws?: string }>;
-}
-
-export default async function WorkspaceIndex({
-  searchParams,
-}: WorkspaceIndexProps) {
-  const params = await searchParams;
-  const workspace = await resolveWorkspace(params.ws);
+export default async function WorkspaceIndex() {
+  const workspace = await resolveWorkspace();
 
   // If user has a workspace, redirect to it
   if (workspace) {

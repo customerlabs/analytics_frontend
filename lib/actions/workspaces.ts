@@ -3,7 +3,6 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
-import { setWorkspaceCookie } from '@/lib/workspace/resolver';
 import { routes } from '@/lib/routes';
 import {
   createWorkspace as createWorkspaceAPI,
@@ -66,9 +65,6 @@ export async function createWorkspace(
     }
 
     const workspace = await createWorkspaceAPI(input);
-
-    // Set the new workspace as active
-    await setWorkspaceCookie(workspace.slug);
 
     // Revalidate workspace-related pages
     revalidatePath('/ws');

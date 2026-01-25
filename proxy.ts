@@ -56,8 +56,6 @@ const { auth } = NextAuth({
   ],
 });
 
-const WORKSPACE_COOKIE = "analytics_workspace";
-
 const protectedRoutes = ["/", "/ws", "/accounts", "/settings"];
 const authRoutes = ["/login", "/sign-up", "/forget-password"];
 
@@ -81,12 +79,7 @@ export const proxy = auth((req) => {
   // Auth routes: redirect logged-in users away
   if (authRoutes.includes(pathname)) {
     if (isLoggedIn) {
-      // Check for workspace cookie to redirect to correct workspace
-      const wsFromCookie = req.cookies.get(WORKSPACE_COOKIE)?.value;
-      const redirectUrl = wsFromCookie
-        ? `/ws/${wsFromCookie}`
-        : "/ws";
-      return NextResponse.redirect(new URL(redirectUrl, baseUrl));
+      return NextResponse.redirect(new URL("/ws", baseUrl));
     }
     return NextResponse.next();
   }
@@ -101,22 +94,6 @@ export const proxy = auth((req) => {
     const loginUrl = new URL("/login", baseUrl);
     loginUrl.searchParams.set("returnTo", pathname + nextUrl.search);
     return NextResponse.redirect(loginUrl);
-  }
-
-  // Handle workspace-scoped routes - set workspace cookie from path
-  if (pathname.startsWith("/ws/")) {
-    const wsFromPath = pathname.split("/")[2];
-    if (wsFromPath) {
-      const response = NextResponse.next();
-      response.cookies.set(WORKSPACE_COOKIE, wsFromPath, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 365, // 1 year
-        path: "/",
-      });
-      return response;
-    }
   }
 
   return NextResponse.next();

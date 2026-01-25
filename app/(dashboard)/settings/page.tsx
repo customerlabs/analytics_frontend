@@ -4,14 +4,7 @@ import { routes } from '@/lib/routes';
 
 export const dynamic = 'force-dynamic';
 
-interface SettingsPageProps {
-  searchParams: Promise<{ ws?: string }>;
-}
-
-export default async function SettingsPage({
-  searchParams,
-}: SettingsPageProps) {
-  const params = await searchParams;
-  const workspace = await resolveWorkspaceOrRedirect(params.ws);
+export default async function SettingsPage() {
+  const workspace = await resolveWorkspaceOrRedirect();
   redirect(routes.ws.settings.general(workspace.slug));
 }

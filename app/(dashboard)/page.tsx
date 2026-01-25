@@ -4,14 +4,7 @@ import { routes } from '@/lib/routes';
 
 export const dynamic = 'force-dynamic';
 
-interface DashboardPageProps {
-  searchParams: Promise<{ ws?: string }>;
-}
-
-export default async function DashboardPage({
-  searchParams,
-}: DashboardPageProps) {
-  const params = await searchParams;
-  const workspace = await resolveWorkspaceOrRedirect(params.ws);
+export default async function DashboardPage() {
+  const workspace = await resolveWorkspaceOrRedirect();
   redirect(routes.ws.dashboard(workspace.slug));
 }

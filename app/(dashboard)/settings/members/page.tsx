@@ -4,12 +4,7 @@ import { routes } from '@/lib/routes';
 
 export const dynamic = 'force-dynamic';
 
-interface MembersPageProps {
-  searchParams: Promise<{ ws?: string }>;
-}
-
-export default async function MembersPage({ searchParams }: MembersPageProps) {
-  const params = await searchParams;
-  const workspace = await resolveWorkspaceOrRedirect(params.ws);
+export default async function MembersPage() {
+  const workspace = await resolveWorkspaceOrRedirect();
   redirect(routes.ws.settings.members(workspace.slug));
 }

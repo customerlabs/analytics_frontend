@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
+import { SessionRefreshProvider } from "@/components/SessionRefreshProvider";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -31,11 +32,13 @@ export function Providers({ children }: ProvidersProps) {
       forcedTheme="light"
       disableTransitionOnChange
     >
-      <SessionProvider>
-        <QueryClientProvider client={queryClient}>
-          {children}
-          <Toaster />
-        </QueryClientProvider>
+      <SessionProvider refetchInterval={0} refetchOnWindowFocus={false}>
+        <SessionRefreshProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+            <Toaster />
+          </QueryClientProvider>
+        </SessionRefreshProvider>
       </SessionProvider>
     </ThemeProvider>
   );

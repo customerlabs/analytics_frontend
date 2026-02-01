@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/auth/helpers";
 import { APIError } from "@/lib/apiErrors";
 
 interface FetchOptions {
@@ -11,6 +11,7 @@ interface FetchOptions {
   body?: unknown;
   useBackendAPI?: boolean; // When true, use Bearer token and backend URL
   skipCache?: boolean; // Skip caching for mutations
+  accessToken?: string; // Optional access token to avoid redundant auth() calls
 }
 
 /**
@@ -46,20 +47,27 @@ export async function fetchFromAPI<T>(
 
   // Use Bearer token for backend API, cookies for internal API
   if (options?.useBackendAPI) {
-    const session = await auth();
+    // Use provided token or fall back to getSession()
+    let accessToken = options?.accessToken;
 
-    // Check for refresh token error before making the request
-    if (session?.error === "RefreshTokenError") {
-      throw new APIError(
-        "Session expired. Please sign in again.",
-        401,
-        endpoint,
-        "Unauthorized"
-      );
+    if (!accessToken) {
+      const session = await getSession();
+
+      // Check for refresh token error before making the request
+      if (session?.error === "RefreshTokenError") {
+        throw new APIError(
+          "Session expired. Please sign in again.",
+          401,
+          endpoint,
+          "Unauthorized"
+        );
+      }
+
+      accessToken = session?.accessToken;
     }
 
-    if (session?.accessToken) {
-      headers['Authorization'] = `Bearer ${session.accessToken}`;
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
     }
   } else {
     headers['Cookie'] = cookieStore.toString();

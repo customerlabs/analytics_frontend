@@ -62,6 +62,9 @@ const authConfig = {
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,
           expiresAt: Math.floor(Date.now() / 1000) + tokens.expires_in,
+          refreshExpiresAt: tokens.refresh_expires_in
+            ? Math.floor(Date.now() / 1000) + tokens.refresh_expires_in
+            : undefined,
         };
       },
     }),
@@ -91,6 +94,8 @@ export const {
           accessToken: account.access_token,
           refreshToken: account.refresh_token,
           expiresAt: account.expires_at,
+          // Keycloak provides refresh_expires_in (seconds), convert to absolute timestamp
+          refreshExpiresAt: account.refresh_expires_at as number | undefined,
           id: profile?.sub,
           error: undefined,
         };
@@ -103,6 +108,7 @@ export const {
           accessToken: user.accessToken as string,
           refreshToken: user.refreshToken as string,
           expiresAt: user.expiresAt as number,
+          refreshExpiresAt: user.refreshExpiresAt as number | undefined,
           id: user.id,
           error: undefined,
         };
@@ -136,6 +142,18 @@ export const {
         };
       }
 
+      // Check if refresh token itself is expired
+      if (token.refreshExpiresAt) {
+        const refreshExpired = Date.now() >= (token.refreshExpiresAt as number) * 1000;
+        if (refreshExpired) {
+          console.error("Refresh token has expired, user must re-login");
+          return {
+            ...token,
+            error: "RefreshTokenError" as const,
+          };
+        }
+      }
+
       try {
         const refreshedTokens = await refreshKeycloakToken(token.refreshToken as string);
 
@@ -145,6 +163,10 @@ export const {
           expiresAt: Math.floor(Date.now() / 1000) + refreshedTokens.expires_in,
           // Keycloak may or may not return a new refresh token
           refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
+          // Update refresh token expiry if provided
+          refreshExpiresAt: refreshedTokens.refresh_expires_in
+            ? Math.floor(Date.now() / 1000) + refreshedTokens.refresh_expires_in
+            : token.refreshExpiresAt,
           error: undefined,
         };
       } catch (error) {
@@ -161,6 +183,8 @@ export const {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.accessToken = token.accessToken as string;
+        session.expiresAt = token.expiresAt as number | undefined;
+        session.refreshExpiresAt = token.refreshExpiresAt as number | undefined;
         session.error = token.error as "RefreshTokenError" | undefined;
       }
       return session;

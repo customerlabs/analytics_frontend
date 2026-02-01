@@ -8,11 +8,12 @@ interface AppLayoutProps {
 
 export default async function AppLayout({ children }: AppLayoutProps) {
   // Session is guaranteed by proxy.ts - no redirect needed here
+  // Single auth() call - pass session to child functions to avoid redundant calls
   const session = await auth();
 
   const [workspaces, currentWorkspace] = await Promise.all([
-    getUserWorkspaceList(),
-    resolveWorkspace(),
+    getUserWorkspaceList(session),
+    resolveWorkspace(null, session),
   ]);
 
   // Map NextAuth session user to expected format (session guaranteed by proxy)

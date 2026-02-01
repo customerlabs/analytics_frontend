@@ -2,8 +2,10 @@
 
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/auth/helpers';
 import { listWorkspaces } from '@/lib/api/workspaces';
 import type { WorkspaceWithRole } from '@/lib/api/workspaces';
+import type { Session } from 'next-auth';
 
 // Re-export the Workspace type for compatibility
 export interface Workspace {
@@ -34,12 +36,14 @@ async function getWorkspacesFromBackend(): Promise<WorkspaceWithRole[]> {
 /**
  * Resolve workspace by slug (path-based resolution only)
  * @param slug - Workspace slug from URL path
+ * @param providedSession - Optional session to avoid redundant auth() calls
  * @returns The requested workspace or first available workspace
  */
 export async function resolveWorkspace(
-  slug?: string | null
+  slug?: string | null,
+  providedSession?: Session | null
 ): Promise<Workspace | null> {
-  const session = await auth();
+  const session = providedSession ?? await getSession();
 
   if (!session?.user) {
     return null;
@@ -81,9 +85,12 @@ export async function resolveWorkspaceOrRedirect(
 
 /**
  * Get all workspaces for current user
+ * @param providedSession - Optional session to avoid redundant auth() calls
  */
-export async function getUserWorkspaceList(): Promise<Workspace[]> {
-  const session = await auth();
+export async function getUserWorkspaceList(
+  providedSession?: Session | null
+): Promise<Workspace[]> {
+  const session = providedSession ?? await getSession();
 
   if (!session?.user) {
     return [];

@@ -14,33 +14,38 @@ export interface TokenRefreshError {
   error_description?: string;
 }
 
-// Promise-based lock to prevent concurrent token refreshes
-let refreshPromise: Promise<TokenRefreshResult> | null = null;
+// Map-based lock to prevent concurrent token refreshes for the same token
+const refreshPromises = new Map<string, Promise<TokenRefreshResult>>();
 
 /**
  * Refresh an access token using a Keycloak refresh token
- * Uses Promise-based locking to prevent concurrent refresh requests
+ * Uses per-token Promise-based locking to prevent concurrent refresh requests
  * @param refreshToken - The refresh token to use
  * @returns New token set or throws on failure
  */
 export async function refreshKeycloakToken(
   refreshToken: string
 ): Promise<TokenRefreshResult> {
-  // If a refresh is already in progress, wait for it
-  if (refreshPromise) {
+  // Create a key from the token (first 20 chars is sufficient for deduplication)
+  const tokenKey = refreshToken.slice(0, 20);
+
+  // If a refresh is already in progress for THIS token, wait for it
+  const existing = refreshPromises.get(tokenKey);
+  if (existing) {
     console.log('Waiting for existing token refresh...');
-    return refreshPromise;
+    return existing;
   }
 
   console.log('Refreshing access token...');
-  refreshPromise = doActualRefresh(refreshToken);
+  const promise = doActualRefresh(refreshToken);
+  refreshPromises.set(tokenKey, promise);
 
   try {
-    const result = await refreshPromise;
+    const result = await promise;
     console.log('Token refreshed successfully');
     return result;
   } finally {
-    refreshPromise = null;
+    refreshPromises.delete(tokenKey);
   }
 }
 

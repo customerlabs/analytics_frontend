@@ -57,6 +57,8 @@ export const routes = {
     auth: {
       callback: () => '/api/auth/callback',
       logout: () => '/api/auth/logout',
+      clabsCallback: (workspaceId: string) =>
+        `/api/auth/clabs/callback?workspace_id=${workspaceId}`,
     },
     workspaces: () => '/api/workspaces',
     accounts: (id: string) => `/api/accounts?ws=${id}`,

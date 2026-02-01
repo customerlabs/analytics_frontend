@@ -28,6 +28,3 @@ export const getJwksEndpoint = () =>
 
 // Scopes requested during authentication
 export const DEFAULT_SCOPES = 'openid profile email offline_access';
-
-// Token lifetimes (in seconds)
-export const TOKEN_REFRESH_BUFFER = 60; // Refresh 60s before expiry

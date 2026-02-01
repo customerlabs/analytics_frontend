@@ -18,43 +18,6 @@ export interface RegisterResult {
   redirectTo?: string;
 }
 
-// Backend user response type
-interface BackendUser {
-  id: string;
-  email: string;
-  name?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-/**
- * Sync user to backend database after login
- * The backend auto-creates the user on first API call using JWT claims
- * TODO: Call this from NextAuth signIn callback when access token is available
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function syncUserToBackend(accessToken: string): Promise<BackendUser | null> {
-  try {
-    const baseUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${baseUrl}/api/v1/users/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Backend sync failed: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to sync user to backend:', error);
-    return null;
-  }
-}
-
 /**
  * Login action for useActionState - credentials login
  */

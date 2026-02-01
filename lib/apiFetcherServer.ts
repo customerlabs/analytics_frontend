@@ -52,17 +52,6 @@ export async function fetchFromAPI<T>(
 
     if (!accessToken) {
       const session = await getSession();
-
-      // Check for refresh token error before making the request
-      if (session?.error === "RefreshTokenError") {
-        throw new APIError(
-          "Session expired. Please sign in again.",
-          401,
-          endpoint,
-          "Unauthorized"
-        );
-      }
-
       accessToken = session?.accessToken;
     }
 

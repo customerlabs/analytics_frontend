@@ -1,1 +1,1 @@
-export { FacebookAuthorizeModal } from "./FacebookAuthorizeModal";
+export { FacebookAuthorizeModal } from "./auth/FacebookAuthorizeModal";

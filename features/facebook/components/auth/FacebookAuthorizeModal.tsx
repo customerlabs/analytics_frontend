@@ -23,8 +23,8 @@ import {
   createFacebookAdsAccount,
   clearFacebookToken,
   type AccountResponse,
-} from "../server/actions";
-import type { FacebookAdAccount } from "../server/metaGraph";
+} from "../../server/actions";
+import type { FacebookAdAccount } from "../../server/metaGraph";
 
 type ModalState =
   | "idle"
@@ -236,7 +236,7 @@ export function FacebookAuthorizeModal({
           )}
 
           {state === "authorizing" && (
-            <div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-6">
+            <div className="flex h-full min-h-75 flex-col items-center justify-center gap-6">
               <div className="relative">
                 <div className="absolute inset-0 animate-ping rounded-full bg-[#1877F2]/20" />
                 <div className="relative flex size-16 items-center justify-center rounded-full bg-[#1877F2]/10">
@@ -255,7 +255,7 @@ export function FacebookAuthorizeModal({
           )}
 
           {state === "loading_accounts" && (
-            <div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-6">
+            <div className="flex h-full min-h-75 flex-col items-center justify-center gap-6">
               <div className="flex size-16 items-center justify-center rounded-full bg-[#1877F2]/10">
                 <Loader2 className="size-8 animate-spin text-[#1877F2]" />
               </div>
@@ -301,7 +301,7 @@ export function FacebookAuthorizeModal({
                   <h4 className="text-sm font-medium text-foreground">
                     Select an Ad Account ({adAccounts.length})
                   </h4>
-                  <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                     {adAccounts.map((account) => (
                       <button
                         key={account.id}
@@ -345,7 +345,7 @@ export function FacebookAuthorizeModal({
           )}
 
           {state === "saving" && (
-            <div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-6">
+            <div className="flex h-full min-h-75 flex-col items-center justify-center gap-6">
               <div className="flex size-16 items-center justify-center rounded-full bg-[#1877F2]/10">
                 <Loader2 className="size-8 animate-spin text-[#1877F2]" />
               </div>
@@ -361,7 +361,7 @@ export function FacebookAuthorizeModal({
           )}
 
           {state === "error" && (
-            <div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-6">
+            <div className="flex h-full min-h-75 flex-col items-center justify-center gap-6">
               <div className="flex size-16 items-center justify-center rounded-full bg-destructive/10">
                 <AlertCircle className="size-8 text-destructive" />
               </div>
@@ -369,7 +369,7 @@ export function FacebookAuthorizeModal({
                 <h3 className="text-lg font-medium text-foreground">
                   Connection Failed
                 </h3>
-                <p className="text-sm text-muted-foreground max-w-[280px]">
+                <p className="text-sm text-muted-foreground max-w-70">
                   {error}
                 </p>
               </div>

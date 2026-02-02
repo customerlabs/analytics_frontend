@@ -22,6 +22,8 @@ export interface CustomerLabsAccountData {
   account_name: string;
   user_id: number;
   user_email: string;
+  timezone?: string;
+  region?: string;
 }
 
 export interface CreateAccountInput {
@@ -84,6 +86,10 @@ export async function createCustomerLabsAccount(
       app_id: accountData.app_id,
       user_id: accountData.user_id,
       user_email: accountData.user_email,
+    },
+    config_data: {
+      timezone: accountData.timezone,
+      region: accountData.region,
     },
   };
 

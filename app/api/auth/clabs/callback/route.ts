@@ -1,8 +1,8 @@
 import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
 
-// localStorage key - must match the modal component
-const STORAGE_KEY = "clabs_auth_state";
+// BroadcastChannel name - must match the modal component
+const CLABS_AUTH_CHANNEL = "clabs_auth";
 
 // JWT payload structure from CustomerLabs
 interface CustomerLabsJWTPayload {
@@ -11,25 +11,26 @@ interface CustomerLabsJWTPayload {
   account_name: string;
   user_id: number;
   user_email: string;
+  timezone?: string;
+  region?: string;
   iat: number;
   exp: number;
 }
 
-// HTML that updates localStorage and closes the popup
-// Native storage event fires automatically in parent window when this popup writes to localStorage
-function generateCallbackHtml(state: object): string {
-  const jsonData = JSON.stringify(state);
+// HTML that sends data via BroadcastChannel and closes the tab
+function generateCallbackHtml(
+  type: "AUTH_SUCCESS" | "AUTH_ERROR",
+  payload: object
+): string {
+  const message = JSON.stringify({ type, payload });
   return `<!DOCTYPE html>
 <html><head><title>Processing...</title></head>
 <body>
 <script>
 (function(){
-  try {
-    // Setting localStorage from this popup window triggers native 'storage' event in parent
-    localStorage.setItem('${STORAGE_KEY}', '${jsonData.replace(/'/g, "\\'")}');
-  } catch(e) {
-    console.error('Failed to set localStorage:', e);
-  }
+  const channel = new BroadcastChannel('${CLABS_AUTH_CHANNEL}');
+  channel.postMessage(${message});
+  channel.close();
   window.close();
 })();
 </script>
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
   // Handle user cancellation
   if (error === "access_denied") {
     return new Response(
-      generateCallbackHtml({ state: "error", error: "Authorization was cancelled." }),
+      generateCallbackHtml("AUTH_ERROR", { error: "Authorization was cancelled." }),
       { headers: { "Content-Type": "text/html" } }
     );
   }
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
   // Handle other errors from CustomerLabs
   if (error) {
     return new Response(
-      generateCallbackHtml({ state: "error", error: `Authorization failed: ${error}` }),
+      generateCallbackHtml("AUTH_ERROR", { error: `Authorization failed: ${error}` }),
       { headers: { "Content-Type": "text/html" } }
     );
   }
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
   // Validate code
   if (!code) {
     return new Response(
-      generateCallbackHtml({ state: "error", error: "Missing authorization code." }),
+      generateCallbackHtml("AUTH_ERROR", { error: "Missing authorization code." }),
       { headers: { "Content-Type": "text/html" } }
     );
   }
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
   if (!secret) {
     console.error("CLABS_API_SECRET environment variable is not set");
     return new Response(
-      generateCallbackHtml({ state: "error", error: "Server configuration error." }),
+      generateCallbackHtml("AUTH_ERROR", { error: "Server configuration error." }),
       { headers: { "Content-Type": "text/html" } }
     );
   }
@@ -88,14 +89,15 @@ export async function GET(request: NextRequest) {
 
     // Set success state with account data
     return new Response(
-      generateCallbackHtml({
-        state: "data_received",
+      generateCallbackHtml("AUTH_SUCCESS", {
         accountData: {
           app_id: customerLabsPayload.app_id,
           account_id: customerLabsPayload.account_id,
           account_name: customerLabsPayload.account_name,
           user_id: customerLabsPayload.user_id,
           user_email: customerLabsPayload.user_email,
+          timezone: customerLabsPayload.timezone,
+          region: customerLabsPayload.region,
         },
       }),
       { headers: { "Content-Type": "text/html" } }
@@ -107,7 +109,7 @@ export async function GET(request: NextRequest) {
         ? "Authorization expired. Please try again."
         : "Invalid authorization token.";
     return new Response(
-      generateCallbackHtml({ state: "error", error: errorMessage }),
+      generateCallbackHtml("AUTH_ERROR", { error: errorMessage }),
       { headers: { "Content-Type": "text/html" } }
     );
   }

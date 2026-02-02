@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, Trash2, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { AddAccountPanel } from "./AddAccountPanel";
 import { OnboardingSheet } from "@/features/customerlabs/components/OnboardingSheet";
 import { useOnboardingSheet } from "@/features/customerlabs/hooks/useOnboardingSheet";
-import { useWorkspaceAccounts, useAccountTemplates } from "../hooks";
+import { useWorkspaceAccounts } from "../hooks";
 import { deleteAccount, type AccountStatus } from "@/lib/api/accounts";
 
 interface AccountsPageClientProps {
@@ -28,16 +28,7 @@ export function AccountsPageClient({
   const { data: accounts = [], isLoading: accountsLoading } =
     useWorkspaceAccounts({ workspaceId });
 
-  const { data: templates = [] } = useAccountTemplates({ workspaceId });
-
   const openOnboarding = useOnboardingSheet((state) => state.open);
-
-  // Create a map of template_id -> template for quick lookup
-  const templateMap = useMemo(() => {
-    const map = new Map<string, (typeof templates)[0]>();
-    templates.forEach((t) => map.set(t.id, t));
-    return map;
-  }, [templates]);
 
   const handleOpenAccount = (accountId: string, status: AccountStatus) => {
     if (status === "pending" || status === "draft") {
@@ -48,6 +39,19 @@ export function AccountsPageClient({
       router.push(`/ws/${workspaceId}/accounts/${accountId}`);
     }
   };
+
+  const handleAccountCreated = useCallback(
+    (accountId: string) => {
+      // Invalidate accounts list query to refresh UI immediately
+      queryClient.invalidateQueries({ queryKey: ["workspace-accounts", workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ["account-templates", workspaceId] });
+      // Close the add panel
+      setShowAddPanel(false);
+      // Open onboarding sheet for the new account
+      openOnboarding(accountId);
+    },
+    [queryClient, workspaceId, openOnboarding]
+  );
 
   const handleRemoveAccount = async (accountId: string, accountName: string) => {
     if (!confirm(`Remove "${accountName}" from this workspace?\n\nThis action cannot be undone.`)) {
@@ -141,6 +145,7 @@ export function AccountsPageClient({
         workspaceId={workspaceId}
         isOpen={showAddPanel}
         onClose={() => setShowAddPanel(false)}
+        onAccountCreated={handleAccountCreated}
       />
 
       {/* Connected Accounts Table */}
@@ -194,7 +199,6 @@ export function AccountsPageClient({
             </thead>
             <tbody className="divide-y divide-border">
               {accounts.map((account) => {
-                const template = templateMap.get(account.template_id);
                 const isRemoving = removingId === account.id;
                 // Get app_id from auth_data for display
                 const appId = (account.auth_data?.app_id as string) || account.account_id;

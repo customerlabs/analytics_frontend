@@ -6,20 +6,20 @@ import { useAccountTemplates } from "../hooks";
 import { AccountTemplateGrid } from "./AccountTemplateGrid";
 import { AccountTemplateGridSkeleton } from "./skeletons";
 import { CustomerLabsAuthorizeModal } from "@/features/customerlabs/components/CustomerLabsAuthorizeModal";
-import { useOnboardingSheet } from "@/features/customerlabs/hooks/useOnboardingSheet";
 import type { AccountTemplate } from "../types";
 
 interface AddAccountPanelProps {
   workspaceId: string;
   isOpen: boolean;
   onClose?: () => void;
+  onAccountCreated?: (accountId: string) => void;
   className?: string;
 }
 
 export function AddAccountPanel({
   workspaceId,
   isOpen,
-  onClose,
+  onAccountCreated,
   className,
 }: AddAccountPanelProps) {
   const { data: templates, isLoading } = useAccountTemplates({
@@ -29,7 +29,6 @@ export function AddAccountPanel({
 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<AccountTemplate | null>(null);
-  const openOnboarding = useOnboardingSheet((state) => state.open);
 
   const handleTemplateSelect = useCallback((template: AccountTemplate) => {
     if (template.account_type === "customerlabs") {
@@ -43,10 +42,10 @@ export function AddAccountPanel({
   const handleAccountCreated = useCallback(
     (accountId: string) => {
       setShowAuthModal(false);
-      onClose?.();
-      openOnboarding(accountId);
+      setSelectedTemplate(null);
+      onAccountCreated?.(accountId);
     },
-    [onClose, openOnboarding]
+    [onAccountCreated]
   );
 
   if (!isOpen) {

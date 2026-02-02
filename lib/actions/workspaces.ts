@@ -50,7 +50,10 @@ interface ActionResult {
  */
 export async function createWorkspace(
   name: string,
-  slug?: string
+  slug?: string,
+  timezone?: string,
+  currency?: string,
+  region?: string
 ): Promise<CreateWorkspaceResult> {
   const session = await getSession();
 
@@ -62,6 +65,15 @@ export async function createWorkspace(
     const input: CreateWorkspaceInput = { name };
     if (slug) {
       input.slug = slug;
+    }
+    if (timezone) {
+      input.timezone = timezone;
+    }
+    if (currency) {
+      input.currency = currency;
+    }
+    if (region) {
+      input.region = region;
     }
 
     const workspace = await createWorkspaceAPI(input);
@@ -341,9 +353,12 @@ export async function removeWorkspaceFromOrganization(
  */
 export async function createWorkspaceAndRedirect(
   name: string,
-  slug?: string
+  slug?: string,
+  timezone?: string,
+  currency?: string,
+  region?: string
 ): Promise<void> {
-  const result = await createWorkspace(name, slug);
+  const result = await createWorkspace(name, slug, timezone, currency, region);
 
   if (result.success && result.workspaceId) {
     redirect(routes.ws.dashboard(result.workspaceId));

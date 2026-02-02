@@ -18,6 +18,7 @@ export function Providers({ children }: ProvidersProps) {
           queries: {
             staleTime: 60 * 1000,
             refetchOnWindowFocus: false,
+            retry: false,
           },
         },
       }),

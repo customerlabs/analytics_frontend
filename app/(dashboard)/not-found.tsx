@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import { ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AuthHeader } from '@/components/layout/AuthHeader';
-import { getSession, logoutAction } from '@/lib/auth';
+import { auth, logoutAction } from '@/lib/auth';
 import { getUserWorkspaceList } from '@/lib/workspace/resolver';
+import { AuthHeader } from '@/components/layout/AuthHeader';
 
-export default async function WorkspaceNotFound() {
-  const session = await getSession();
-  const workspaces = await getUserWorkspaceList();
+export default async function DashboardNotFound() {
+  const session = await auth();
+  const workspaces = await getUserWorkspaceList(session);
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,12 +26,12 @@ export default async function WorkspaceNotFound() {
           </div>
 
           <h1 className="text-2xl font-semibold text-foreground">
-            Access Denied
+            Page Not Found
           </h1>
 
           <p className="mt-3 text-muted-foreground">
-            You don&apos;t have permission to access this workspace. Please
-            contact the workspace owner if you believe this is a mistake.
+            The page you&apos;re looking for doesn&apos;t exist or you
+            don&apos;t have permission to access it.
           </p>
 
           <div className="mt-8 flex gap-3">

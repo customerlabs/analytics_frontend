@@ -29,7 +29,7 @@ export function LoginForm() {
   }, [state, router]);
 
   const handleSocialLogin = async () => {
-    await initiateKeycloakLogin("/auth/post-login");
+    await initiateKeycloakLogin("/ws");
   };
 
   return (

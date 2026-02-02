@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Check, X } from 'lucide-react';
+import { Loader2, Check, X, ChevronDown } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -17,6 +17,12 @@ import { createWorkspace } from '@/lib/actions/workspaces';
 import { useCreateWorkspaceSheet } from '@/hooks/useCreateWorkspaceSheet';
 import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
+import {
+  getTimezones,
+  getCurrencies,
+  getRegions,
+  getBrowserTimezone,
+} from '@/features/customerlabs/utils/form-options';
 
 // Get domain for display (strip protocol)
 const getDisplayDomain = () => {
@@ -39,8 +45,16 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [isCustomSlug, setIsCustomSlug] = useState(false);
+  const [timezone, setTimezone] = useState(getBrowserTimezone());
+  const [currency, setCurrency] = useState('USD');
+  const [region, setRegion] = useState('US');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get options for dropdowns
+  const timezones = getTimezones();
+  const currencies = getCurrencies();
+  const regions = getRegions();
 
   // Slug availability state
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
@@ -52,6 +66,9 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
       setName('');
       setSlug('');
       setIsCustomSlug(false);
+      setTimezone(getBrowserTimezone());
+      setCurrency('USD');
+      setRegion('US');
       setError(null);
       setSlugStatus('idle');
       setSlugCheckError(null);
@@ -134,7 +151,13 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
     setIsLoading(true);
 
     try {
-      const result = await createWorkspace(name.trim(), slug.trim());
+      const result = await createWorkspace(
+        name.trim(),
+        slug.trim(),
+        timezone,
+        currency,
+        region
+      );
 
       if (!result.success || !result.workspaceId) {
         setError(result.error || 'Failed to create workspace');
@@ -251,6 +274,99 @@ export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
                 This will be used in URLs to identify your workspace
               </p>
             )}
+          </div>
+
+          {/* Timezone */}
+          <div className="space-y-2">
+            <Label htmlFor="sheet-timezone">Timezone</Label>
+            <div className="relative">
+              <select
+                id="sheet-timezone"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                className={cn(
+                  'w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm',
+                  'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                  'appearance-none cursor-pointer'
+                )}
+                disabled={isLoading}
+              >
+                {timezones.map((tz) => (
+                  <option key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            </div>
+            <p className="form-helper">Used for reporting and scheduling</p>
+          </div>
+
+          {/* Currency */}
+          <div className="space-y-2">
+            <Label htmlFor="sheet-currency">Currency</Label>
+            <div className="relative">
+              <select
+                id="sheet-currency"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className={cn(
+                  'w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm',
+                  'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                  'appearance-none cursor-pointer'
+                )}
+                disabled={isLoading}
+              >
+                {currencies.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            </div>
+            <p className="form-helper">Default currency for financial data</p>
+          </div>
+
+          {/* Region / Data Location */}
+          <div className="space-y-2">
+            <Label htmlFor="sheet-region">Data Location</Label>
+            <div className="relative">
+              <select
+                id="sheet-region"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className={cn(
+                  'w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm',
+                  'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                  'appearance-none cursor-pointer'
+                )}
+                disabled={isLoading}
+              >
+                <optgroup label="Multi-Region">
+                  {regions
+                    .filter((r) => r.category === 'multi-region')
+                    .map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                </optgroup>
+                <optgroup label="Single Region">
+                  {regions
+                    .filter((r) => r.category === 'region')
+                    .map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                </optgroup>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            </div>
+            <p className="form-helper">
+              Where your data will be stored (cannot be changed later)
+            </p>
           </div>
 
           {/* Submit Button */}

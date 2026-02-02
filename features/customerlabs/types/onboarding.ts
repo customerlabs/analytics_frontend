@@ -33,23 +33,12 @@ export interface OnboardingStep {
 // Data availability check response (matches backend DataAvailabilityResponse)
 export interface DataAvailabilityData {
   has_data: boolean;
-  event_counts: EventCount[];
-  total_events: number;
-  date_range_start?: string | null;
-  date_range_end?: string | null;
-}
-
-export interface EventCount {
-  event_name: string;
-  count: number;
-  first_seen?: string | null;
-  last_seen?: string | null;
 }
 
 // Basic account configuration
 export interface BasicAccountConfig {
-  timezone: string;
-  currency: string;
+  client_timezone: string;
+  base_currency: string;
   business_category: string;
   new_user_event: string;
   repeat_user_event: string;

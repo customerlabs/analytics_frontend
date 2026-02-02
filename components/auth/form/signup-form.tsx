@@ -86,7 +86,7 @@ export function SignupForm() {
     setIsSocialLoading(true);
     try {
       // For social signup, use OAuth flow (redirects to Keycloak)
-      await initiateLogin("/auth/post-login");
+      await initiateLogin("/ws");
     } catch {
       setErrors({ general: "Failed to initiate social signup" });
       setIsSocialLoading(false);

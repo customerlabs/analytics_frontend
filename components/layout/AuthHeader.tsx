@@ -23,8 +23,6 @@ export function AuthHeader({
   onLogout,
 }: AuthHeaderProps) {
   const router = useRouter();
-  const hasWorkspaceData =
-    Boolean(currentWorkspace) && Boolean(workspaces && workspaces.length > 0);
 
   const handleLogout = async () => {
     await onLogout();
@@ -61,12 +59,10 @@ export function AuthHeader({
         </Link>
 
         {/* Workspace Switcher */}
-        {hasWorkspaceData && (
-          <WorkspaceSelector
-            currentWorkspace={currentWorkspace!}
-            workspaces={workspaces!}
-          />
-        )}
+        <WorkspaceSelector
+          currentWorkspace={currentWorkspace}
+          workspaces={workspaces ?? []}
+        />
       </div>
 
       {/* Right Section: User Profile */}

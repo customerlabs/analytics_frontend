@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
@@ -41,8 +40,8 @@ export function BasicAccountConfigStep({
     | undefined;
 
   const [formData, setFormData] = useState<BasicAccountConfig>({
-    timezone: existingData?.timezone ?? getBrowserTimezone(),
-    currency: existingData?.currency ?? "USD",
+    client_timezone: existingData?.client_timezone ?? getBrowserTimezone(),
+    base_currency: existingData?.base_currency ?? "USD",
     business_category: existingData?.business_category ?? "",
     new_user_event: existingData?.new_user_event ?? "",
     repeat_user_event: existingData?.repeat_user_event ?? "",
@@ -125,19 +124,19 @@ export function BasicAccountConfigStep({
         {/* Timezone & Currency Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="timezone">
+            <Label htmlFor="client_timezone">
               Timezone <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
               <select
-                id="timezone"
-                value={formData.timezone}
-                onChange={(e) => handleChange("timezone", e.target.value)}
+                id="client_timezone"
+                value={formData.client_timezone}
+                onChange={(e) => handleChange("client_timezone", e.target.value)}
                 className={cn(
                   "w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm",
                   "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                   "appearance-none cursor-pointer",
-                  errors.timezone && "border-destructive",
+                  errors.client_timezone && "border-destructive",
                 )}
               >
                 <option value="">Select timezone...</option>
@@ -149,25 +148,25 @@ export function BasicAccountConfigStep({
               </select>
               <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             </div>
-            {errors.timezone && (
-              <p className="text-xs text-destructive">{errors.timezone}</p>
+            {errors.client_timezone && (
+              <p className="text-xs text-destructive">{errors.client_timezone}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="currency">
+            <Label htmlFor="base_currency">
               Currency <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
               <select
-                id="currency"
-                value={formData.currency}
-                onChange={(e) => handleChange("currency", e.target.value)}
+                id="base_currency"
+                value={formData.base_currency}
+                onChange={(e) => handleChange("base_currency", e.target.value)}
                 className={cn(
                   "w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm",
                   "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                   "appearance-none cursor-pointer",
-                  errors.currency && "border-destructive",
+                  errors.base_currency && "border-destructive",
                 )}
               >
                 <option value="">Select currency...</option>
@@ -179,8 +178,8 @@ export function BasicAccountConfigStep({
               </select>
               <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             </div>
-            {errors.currency && (
-              <p className="text-xs text-destructive">{errors.currency}</p>
+            {errors.base_currency && (
+              <p className="text-xs text-destructive">{errors.base_currency}</p>
             )}
           </div>
         </div>

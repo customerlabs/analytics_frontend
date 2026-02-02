@@ -93,7 +93,6 @@ export const publicRoutes = [
   '/forgot-password',
   '/verify-email',
   '/api/auth',
-  '/auth/post-login',
 ];
 
 /**

@@ -12,6 +12,9 @@ export interface WorkspaceResponse {
   id: string;
   name: string;
   slug: string;
+  timezone: string | null;
+  currency: string | null;
+  region: string | null;
   organization_id: string | null;
   created_by: string | null;
   created_at: string;
@@ -43,11 +46,16 @@ interface CommonResponse<T> {
 export interface CreateWorkspaceInput {
   name: string;
   slug?: string;
+  timezone?: string;
+  currency?: string;
+  region?: string;
 }
 
 export interface UpdateWorkspaceInput {
   name?: string;
   slug?: string;
+  timezone?: string;
+  currency?: string;
 }
 
 export interface MoveWorkspaceToOrgInput {

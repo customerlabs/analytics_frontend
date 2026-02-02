@@ -10,7 +10,7 @@ export async function AccountsPage({ workspaceId }: AccountsPageProps) {
 
   return (
     <AccountsPageClient
-      workspaceId={workspace.id}
+      workspaceId={workspace.slug}
       workspaceName={workspace.name}
     />
   );

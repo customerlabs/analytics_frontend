@@ -18,8 +18,8 @@ export function StepIndicator({
   onStepClick,
 }: StepIndicatorProps) {
   const getStepStatus = (step: OnboardingStep): StepStatus => {
-    if (completedSteps.includes(step.step_key)) return "completed";
     if (step.step_key === currentStepKey) return "current";
+    if (completedSteps.includes(step.step_key)) return "completed";
     return "pending";
   };
 

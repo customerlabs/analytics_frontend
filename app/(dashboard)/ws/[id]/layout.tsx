@@ -23,14 +23,9 @@ export default async function WorkspaceLayout({
   const session = await getSession();
   const { id } = await params;
 
-  const [workspaces, workspace] = await Promise.all([
-    getUserWorkspaceList(),
-    resolveWorkspaceOrRedirect(id),
-  ]);
-
-  if (workspaces.length === 0) {
-    redirect('/ws');
-  }
+  // Resolve workspace - will call notFound() if no permission
+  const workspace = await resolveWorkspaceOrRedirect(id);
+  const workspaces = await getUserWorkspaceList();
 
   return (
     <WorkspaceProvider workspace={workspace}>

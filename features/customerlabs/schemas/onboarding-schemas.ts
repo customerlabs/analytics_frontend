@@ -14,12 +14,17 @@ export const fieldMappingSchema = z.object({
 export type FieldMappingInput = z.infer<typeof fieldMappingSchema>;
 
 /**
+ * Valid business categories (must match backend enum)
+ */
+const validBusinessCategories = ["ecommerce", "saas", "lead_gen", "marketplace", "other"] as const;
+
+/**
  * Basic account configuration schema
  */
 export const basicAccountConfigSchema = z.object({
-  timezone: z.string().min(1, "Timezone is required"),
-  currency: z.string().min(1, "Currency is required"),
-  business_category: z.string().min(1, "Business category is required"),
+  client_timezone: z.string().min(1, "Timezone is required"),
+  base_currency: z.string().min(1, "Currency is required"),
+  business_category: z.enum(validBusinessCategories, "Business category is required"),
   new_user_event: z.string().optional().default(""),
   repeat_user_event: z.string().optional().default(""),
 });

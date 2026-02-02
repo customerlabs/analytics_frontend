@@ -11,45 +11,18 @@ export interface SelectOption {
  * Get all IANA timezones using Intl API
  */
 export function getTimezones(): SelectOption[] {
-  try {
-    const timezones = Intl.supportedValuesOf("timeZone");
+  const timezones = Intl.supportedValuesOf("timeZone");
     return timezones.map((tz) => ({
       label: tz.replace(/_/g, " "),
       value: tz,
     }));
-  } catch {
-    // Fallback for environments that don't support supportedValuesOf
-    const commonTimezones = [
-      "America/New_York",
-      "America/Chicago",
-      "America/Denver",
-      "America/Los_Angeles",
-      "America/Anchorage",
-      "Pacific/Honolulu",
-      "Europe/London",
-      "Europe/Paris",
-      "Europe/Berlin",
-      "Asia/Tokyo",
-      "Asia/Shanghai",
-      "Asia/Kolkata",
-      "Asia/Dubai",
-      "Australia/Sydney",
-      "Pacific/Auckland",
-      "UTC",
-    ];
-    return commonTimezones.map((tz) => ({
-      label: tz.replace(/_/g, " "),
-      value: tz,
-    }));
-  }
 }
 
 /**
  * Get all ISO 4217 currencies using Intl API
  */
 export function getCurrencies(): SelectOption[] {
-  try {
-    const currencies = Intl.supportedValuesOf("currency");
+  const currencies = Intl.supportedValuesOf("currency");
     return currencies.map((currency) => {
       let displayName = currency;
       try {
@@ -64,28 +37,6 @@ export function getCurrencies(): SelectOption[] {
         value: currency,
       };
     });
-  } catch {
-    // Fallback for environments that don't support supportedValuesOf
-    const commonCurrencies = [
-      { code: "USD", name: "US Dollar" },
-      { code: "EUR", name: "Euro" },
-      { code: "GBP", name: "British Pound" },
-      { code: "JPY", name: "Japanese Yen" },
-      { code: "CNY", name: "Chinese Yuan" },
-      { code: "INR", name: "Indian Rupee" },
-      { code: "AUD", name: "Australian Dollar" },
-      { code: "CAD", name: "Canadian Dollar" },
-      { code: "CHF", name: "Swiss Franc" },
-      { code: "KRW", name: "South Korean Won" },
-      { code: "SGD", name: "Singapore Dollar" },
-      { code: "BRL", name: "Brazilian Real" },
-      { code: "MXN", name: "Mexican Peso" },
-    ];
-    return commonCurrencies.map(({ code, name }) => ({
-      label: `${code} - ${name}`,
-      value: code,
-    }));
-  }
 }
 
 /**
@@ -94,17 +45,8 @@ export function getCurrencies(): SelectOption[] {
 export const BUSINESS_CATEGORIES: SelectOption[] = [
   { label: "E-commerce / Retail", value: "ecommerce" },
   { label: "SaaS / Software", value: "saas" },
-  { label: "Media / Publishing", value: "media" },
-  { label: "Travel / Hospitality", value: "travel" },
-  { label: "Finance / Banking", value: "finance" },
-  { label: "Healthcare", value: "healthcare" },
-  { label: "Education", value: "education" },
-  { label: "Real Estate", value: "real_estate" },
-  { label: "Automotive", value: "automotive" },
-  { label: "Food & Beverage", value: "food_beverage" },
-  { label: "Entertainment / Gaming", value: "entertainment" },
-  { label: "Non-profit", value: "nonprofit" },
-  { label: "B2B Services", value: "b2b_services" },
+  { label: "Lead Generation", value: "lead_gen" },
+  { label: "Marketplace", value: "marketplace" },
   { label: "Other", value: "other" },
 ];
 
@@ -150,6 +92,50 @@ export const UTM_FIELD_TARGETS = [
  */
 export function getBrowserTimezone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+export interface RegionOption {
+  label: string;
+  value: string;
+  category: "multi-region" | "region";
+}
+
+/**
+ * Get supported data storage regions
+ */
+export function getRegions(): RegionOption[] {
+  return [
+    // Multi-Region
+    { label: "US Multi-Region", value: "US", category: "multi-region" },
+    { label: "EU Multi-Region", value: "EU", category: "multi-region" },
+    // Single Regions
+    {
+      label: "Australia (australia-southeast1)",
+      value: "australia-southeast1",
+      category: "region",
+    },
+    { label: "India (asia-south1)", value: "asia-south1", category: "region" },
+    {
+      label: "London (europe-west2)",
+      value: "europe-west2",
+      category: "region",
+    },
+    {
+      label: "Middle East (me-central1)",
+      value: "me-central1",
+      category: "region",
+    },
+    {
+      label: "Saudi Arabia (me-central2)",
+      value: "me-central2",
+      category: "region",
+    },
+    {
+      label: "Singapore (asia-southeast1)",
+      value: "asia-southeast1",
+      category: "region",
+    },
+  ];
 }
 
 /**

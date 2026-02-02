@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import type { Workspace, Organization } from "@/types/workspace";
 
 interface WorkspaceSelectorProps {
-  currentWorkspace: Workspace;
+  currentWorkspace?: Workspace;
   workspaces: Workspace[];
   organizations?: Organization[];
   className?: string;
@@ -61,13 +61,10 @@ export function WorkspaceSelector({
 
   // Fetch workspaces client-side to ensure fresh data when dropdown opens
   const {
-    workspaces: fetchedWorkspaces,
+    workspaces: workspaceList,
     isLoading: isLoadingWorkspaces,
     refetch: refetchWorkspaces,
   } = useWorkspaceList({ fallbackData: workspaces });
-
-  // Use fetched workspaces (falls back to props initially)
-  const workspaceList = fetchedWorkspaces.length > 0 ? fetchedWorkspaces : workspaces;
 
   // Use store's activeWorkspace if available, otherwise fall back to prop
   const effectiveCurrentWorkspace = activeWorkspace ?? currentWorkspace;
@@ -173,7 +170,7 @@ export function WorkspaceSelector({
   }, [workspaceList, selectedOrgId, searchQuery]);
 
   const handleWorkspaceSwitch = async (workspace: Workspace) => {
-    if (workspace.id === effectiveCurrentWorkspace.id) {
+    if (effectiveCurrentWorkspace && workspace.id === effectiveCurrentWorkspace.id) {
       setIsOpen(false);
       return;
     }
@@ -203,10 +200,6 @@ export function WorkspaceSelector({
     openCreateSheet();
   };
 
-  if (!workspaceList.length && !isLoadingWorkspaces) {
-    return null;
-  }
-
   return (
     <>
       {/* Trigger Button */}
@@ -225,7 +218,7 @@ export function WorkspaceSelector({
         aria-haspopup="dialog"
       >
         <FolderOpen className="h-4 w-4 text-muted-foreground" />
-        <span className="max-w-[180px] truncate">{effectiveCurrentWorkspace.name}</span>
+        <span className="max-w-[180px] truncate">{effectiveCurrentWorkspace?.name ?? "Select Workspace"}</span>
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </button>
 
@@ -389,7 +382,7 @@ export function WorkspaceSelector({
                 </div>
               ) : (
                 filteredWorkspaces.map((workspace) => {
-                  const isSelected = workspace.id === effectiveCurrentWorkspace.id;
+                  const isSelected = effectiveCurrentWorkspace && workspace.id === effectiveCurrentWorkspace.id;
 
                   return (
                     <button

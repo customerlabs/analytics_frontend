@@ -39,7 +39,7 @@ export const loginAction = async (
       redirect: false,
     });
 
-    return { success: "Logged in successfully", redirect: "/auth/post-login" };
+    return { success: "Logged in successfully", redirect: "/ws" };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -57,7 +57,7 @@ export const loginAction = async (
  * Initiate Keycloak OAuth login
  */
 export async function initiateKeycloakLogin(returnTo?: string): Promise<never> {
-  await signIn("keycloak", { redirectTo: returnTo || "/auth/post-login" });
+  await signIn("keycloak", { redirectTo: returnTo || "/ws" });
   // signIn with redirect throws NEXT_REDIRECT, this line won't be reached
   throw new Error("Redirect failed");
 }

@@ -12,6 +12,7 @@ declare module "next-auth" {
       id: string;
     } & DefaultSession["user"];
     accessToken?: string;
+    error?: "RefreshTokenError";
   }
 }
 
@@ -21,5 +22,6 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     refreshToken?: string;
     expiresAt?: number;
+    error?: "RefreshTokenError";
   }
 }

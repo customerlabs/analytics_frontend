@@ -7,6 +7,9 @@ export interface Workspace {
   name: string;
   role: string;
   organization_id?: string | null;
+  timezone?: string | null;
+  currency?: string | null;
+  region?: string | null;
 }
 
 export interface Organization {

@@ -1,7 +1,4 @@
-'use server';
-
-import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { notFound } from 'next/navigation';
 import { getSession } from '@/lib/auth/helpers';
 import { listWorkspaces } from '@/lib/api/workspaces';
 import type { WorkspaceWithRole } from '@/lib/api/workspaces';
@@ -16,17 +13,9 @@ export interface Workspace {
   organization_id?: string | null;
 }
 
-// Cache workspaces for the current request to avoid multiple API calls
-let cachedWorkspaces: WorkspaceWithRole[] | null = null;
-
 async function getWorkspacesFromBackend(): Promise<WorkspaceWithRole[]> {
-  if (cachedWorkspaces !== null) {
-    return cachedWorkspaces;
-  }
-
   try {
-    cachedWorkspaces = await listWorkspaces();
-    return cachedWorkspaces;
+    return await listWorkspaces();
   } catch (error) {
     console.error('Failed to fetch workspaces from backend:', error);
     return [];
@@ -61,9 +50,11 @@ export async function resolveWorkspace(
     if (workspace) {
       return transformWorkspace(workspace);
     }
+    // User doesn't have permission to this workspace
+    return null;
   }
 
-  // Fallback: return first available workspace
+  // Only fall back to first workspace when NO slug provided
   return transformWorkspace(workspaces[0]);
 }
 
@@ -77,7 +68,7 @@ export async function resolveWorkspaceOrRedirect(
   const workspace = await resolveWorkspace(slug);
 
   if (!workspace) {
-    redirect('/ws');
+    notFound();
   }
 
   return workspace;

@@ -1,13 +1,7 @@
 "use client";
 
-import useSWR from "swr";
+import { useState, useCallback } from "react";
 import type { Workspace } from "@/types/workspace";
-
-const fetcher = (url: string) =>
-  fetch(url).then((res) => {
-    if (!res.ok) throw new Error("Failed to fetch workspaces");
-    return res.json();
-  });
 
 interface UseWorkspaceListOptions {
   /** Initial workspaces to use as fallback while loading */
@@ -15,22 +9,26 @@ interface UseWorkspaceListOptions {
 }
 
 export function useWorkspaceList(options?: UseWorkspaceListOptions) {
-  const { data, error, isLoading, mutate } = useSWR<{ workspaces: Workspace[] }>(
-    "/api/workspaces",
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnMount: true,
-      fallbackData: options?.fallbackData
-        ? { workspaces: options.fallbackData }
-        : undefined,
-    }
+  const [workspaces, setWorkspaces] = useState<Workspace[]>(
+    options?.fallbackData ?? []
   );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  return {
-    workspaces: data?.workspaces ?? [],
-    isLoading,
-    error,
-    refetch: mutate,
-  };
+  const refetch = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/workspaces");
+      if (!res.ok) throw new Error("Failed to fetch workspaces");
+      const data = await res.json();
+      setWorkspaces(data.workspaces);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Unknown error"));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return { workspaces, isLoading, error, refetch };
 }

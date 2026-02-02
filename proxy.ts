@@ -7,7 +7,9 @@ const authRoutes = ["/login", "/sign-up", "/forget-password"];
 // Next.js 16: Export as 'proxy' instead of 'middleware'
 export const proxy = auth((req) => {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
+  const hasRefreshError = req.auth?.error === "RefreshTokenError";
+  // User is only truly logged in if session exists AND no refresh error
+  const isLoggedIn = !!req.auth && !hasRefreshError;
   const pathname = nextUrl.pathname;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || nextUrl.origin;

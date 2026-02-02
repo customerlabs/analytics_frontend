@@ -124,8 +124,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               expiresAt: Math.floor(Date.now() / 1000) + tokens.expires_in,
             };
           }
+
+          // Token refresh failed - signal error (per Auth.js docs)
+          console.error("Token refresh failed with status:", response.status);
+          return { ...token, error: "RefreshTokenError" as const };
         } catch (error) {
           console.error("Token refresh failed:", error);
+          return { ...token, error: "RefreshTokenError" as const };
         }
       }
 
@@ -135,6 +140,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token && session.user) {
         session.user.id = token.id as string;
         session.accessToken = token.accessToken as string;
+      }
+      // Propagate refresh error to session (per Auth.js docs)
+      if (token.error === "RefreshTokenError") {
+        session.error = "RefreshTokenError";
       }
       return session;
     },

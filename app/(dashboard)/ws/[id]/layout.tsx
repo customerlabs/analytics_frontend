@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation';
-import { getSession, logoutAction } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import {
   getUserWorkspaceList,
   resolveWorkspaceOrRedirect,
@@ -34,7 +33,6 @@ export default async function WorkspaceLayout({
           user={session!.user}
           currentWorkspace={workspace}
           workspaces={workspaces}
-          onLogout={logoutAction}
         />
 
         <div className="pt-14">

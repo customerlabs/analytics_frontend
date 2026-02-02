@@ -6,13 +6,16 @@ import { useAccountTemplates } from "../hooks";
 import { AccountTemplateGrid } from "./AccountTemplateGrid";
 import { AccountTemplateGridSkeleton } from "./skeletons";
 import { CustomerLabsAuthorizeModal } from "@/features/customerlabs/components/CustomerLabsAuthorizeModal";
+import { FacebookAuthorizeModal, type AccountResponse } from "@/features/facebook";
 import type { AccountTemplate } from "../types";
+
+type ActiveModal = "customerlabs" | "facebook" | null;
 
 interface AddAccountPanelProps {
   workspaceId: string;
   isOpen: boolean;
   onClose?: () => void;
-  onAccountCreated?: (accountId: string) => void;
+  onAccountCreated?: (account: AccountResponse) => void;
   className?: string;
 }
 
@@ -27,25 +30,58 @@ export function AddAccountPanel({
     enabled: isOpen,
   });
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<AccountTemplate | null>(null);
 
   const handleTemplateSelect = useCallback((template: AccountTemplate) => {
+    setSelectedTemplate(template);
+
     if (template.account_type === "customerlabs") {
-      setSelectedTemplate(template);
-      setShowAuthModal(true);
+      setActiveModal("customerlabs");
+    } else if (
+      template.platform.toLowerCase() === "facebook" ||
+      template.platform.toLowerCase() === "meta" ||
+      template.system_name.toLowerCase().includes("facebook")
+    ) {
+      setActiveModal("facebook");
     } else {
-      console.log("Selected template:", template.name);
+      // Future: handle other integrations
+      console.log("Selected template (not yet implemented):", template.name);
     }
   }, []);
 
-  const handleAccountCreated = useCallback(
+  const handleCloseModal = useCallback(() => {
+    setActiveModal(null);
+    setSelectedTemplate(null);
+  }, []);
+
+  const handleCustomerLabsAccountCreated = useCallback(
     (accountId: string) => {
-      setShowAuthModal(false);
-      setSelectedTemplate(null);
-      onAccountCreated?.(accountId);
+      handleCloseModal();
+      // Create a minimal AccountResponse for backward compatibility
+      onAccountCreated?.({
+        id: accountId,
+        workspace_id: workspaceId,
+        account_id: accountId,
+        unique_name: "",
+        template_id: selectedTemplate?.id || "",
+        account_type: "customerlabs",
+        status: "pending",
+        auth_data: {},
+        config_data: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
     },
-    [onAccountCreated]
+    [handleCloseModal, onAccountCreated, workspaceId, selectedTemplate]
+  );
+
+  const handleFacebookAccountCreated = useCallback(
+    (account: AccountResponse) => {
+      handleCloseModal();
+      onAccountCreated?.(account);
+    },
+    [handleCloseModal, onAccountCreated]
   );
 
   if (!isOpen) {
@@ -80,16 +116,25 @@ export function AddAccountPanel({
         />
       )}
 
-      {selectedTemplate && (
+      {/* CustomerLabs Modal */}
+      {selectedTemplate && activeModal === "customerlabs" && (
         <CustomerLabsAuthorizeModal
           workspaceId={workspaceId}
           templateId={selectedTemplate.id}
-          isOpen={showAuthModal}
-          onClose={() => {
-            setShowAuthModal(false);
-            setSelectedTemplate(null);
-          }}
-          onAccountCreated={handleAccountCreated}
+          isOpen={true}
+          onClose={handleCloseModal}
+          onAccountCreated={handleCustomerLabsAccountCreated}
+        />
+      )}
+
+      {/* Facebook Modal */}
+      {selectedTemplate && activeModal === "facebook" && (
+        <FacebookAuthorizeModal
+          workspaceId={workspaceId}
+          templateId={selectedTemplate.id}
+          isOpen={true}
+          onClose={handleCloseModal}
+          onAccountCreated={handleFacebookAccountCreated}
         />
       )}
     </div>

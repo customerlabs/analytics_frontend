@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
-import { useActiveWorkspace } from '@/stores/workspaceStore';
 
 /**
  * Hook for navigation with workspace context
@@ -12,13 +11,12 @@ export function useWorkspaceRouter() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const activeWorkspace = useActiveWorkspace();
 
-  // Get current workspace from URL path or store
+  // Get current workspace from URL path (source of truth)
   const currentWorkspace = useMemo(() => {
     const match = pathname?.match(/^\/ws\/([^/]+)/);
-    return match?.[1] || activeWorkspace?.slug || null;
-  }, [pathname, activeWorkspace]);
+    return match?.[1] || null;
+  }, [pathname]);
 
   /**
    * Check if a path needs workspace context
@@ -128,8 +126,7 @@ export function useWorkspaceRouter() {
  * Hook to get just the current workspace slug from URL path
  */
 export function useCurrentWorkspaceSlug(): string | null {
-  const activeWorkspace = useActiveWorkspace();
   const pathname = usePathname();
   const match = pathname?.match(/^\/ws\/([^/]+)/);
-  return match?.[1] || activeWorkspace?.slug || null;
+  return match?.[1] || null;
 }

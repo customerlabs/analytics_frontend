@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { WorkspaceSelector } from '@/features/workspace/components/WorkspaceSelector';
 import { UserProfile } from '@/components/auth/UserProfile';
+import { logoutAction } from '@/lib/auth';
 import { routes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import type { Workspace, User } from '@/types/workspace';
@@ -13,19 +14,17 @@ interface AuthHeaderProps {
   user: User;
   currentWorkspace?: Workspace;
   workspaces?: Workspace[];
-  onLogout: () => Promise<unknown>;
 }
 
 export function AuthHeader({
   user,
   currentWorkspace,
   workspaces,
-  onLogout,
 }: AuthHeaderProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await onLogout();
+    await logoutAction();
     router.push('/login');
   };
 

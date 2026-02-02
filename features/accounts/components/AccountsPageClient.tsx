@@ -10,6 +10,7 @@ import { OnboardingSheet } from "@/features/customerlabs/components/OnboardingSh
 import { useOnboardingSheet } from "@/features/customerlabs/hooks/useOnboardingSheet";
 import { useWorkspaceAccounts } from "../hooks";
 import { deleteAccount, type AccountStatus } from "@/lib/api/accounts";
+import type { AccountResponse } from "@/features/facebook";
 
 interface AccountsPageClientProps {
   workspaceId: string;
@@ -41,14 +42,21 @@ export function AccountsPageClient({
   };
 
   const handleAccountCreated = useCallback(
-    (accountId: string) => {
+    (account: AccountResponse) => {
       // Invalidate accounts list query to refresh UI immediately
       queryClient.invalidateQueries({ queryKey: ["workspace-accounts", workspaceId] });
       queryClient.invalidateQueries({ queryKey: ["account-templates", workspaceId] });
       // Close the add panel
       setShowAddPanel(false);
-      // Open onboarding sheet for the new account
-      openOnboarding(accountId);
+
+      // Only open CustomerLabs onboarding for customerlabs accounts that need setup
+      if (
+        account.account_type === "customerlabs" &&
+        (account.status === "pending" || account.status === "draft")
+      ) {
+        openOnboarding(account.id);
+      }
+      // For ads accounts (Facebook, etc.), account is already active - no onboarding needed
     },
     [queryClient, workspaceId, openOnboarding]
   );

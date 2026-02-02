@@ -1,0 +1,1 @@
+export { FacebookAuthorizeModal } from "./FacebookAuthorizeModal";

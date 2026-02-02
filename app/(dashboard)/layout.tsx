@@ -1,4 +1,4 @@
-import { auth, logoutAction } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { getUserWorkspaceList, resolveWorkspace } from '@/lib/workspace/resolver';
 import { AppShell } from '@/components/layout/AppShell';
 
@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: AppLayoutProps) {
         user={user}
         currentWorkspace={currentWorkspace}
         workspaces={workspaces}
-        onLogout={logoutAction}
+        showHeader={false}
       >
         {children}
       </AppShell>

@@ -56,7 +56,7 @@ export function WorkspaceSelector({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { switchWorkspace } = useWorkspaceRouter();
-  const { activeWorkspace, setActiveWorkspace } = useWorkspaceStore();
+  const { setActiveWorkspace } = useWorkspaceStore();
   const { open: openCreateSheet } = useCreateWorkspaceSheet();
 
   // Fetch workspaces client-side to ensure fresh data when dropdown opens
@@ -66,8 +66,9 @@ export function WorkspaceSelector({
     refetch: refetchWorkspaces,
   } = useWorkspaceList({ fallbackData: workspaces });
 
-  // Use store's activeWorkspace if available, otherwise fall back to prop
-  const effectiveCurrentWorkspace = activeWorkspace ?? currentWorkspace;
+  // Use prop as source of truth (derived from URL)
+  // Store sync happens separately via setActiveWorkspace on switch
+  const effectiveCurrentWorkspace = currentWorkspace;
 
   // Derive organizations from workspaces if not provided
   const derivedOrganizations = useMemo(() => {

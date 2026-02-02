@@ -42,10 +42,3 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     }
   )
 );
-
-// Selector hooks for common use cases
-export const useActiveWorkspace = () =>
-  useWorkspaceStore((state) => state.activeWorkspace);
-
-export const useWorkspaces = () =>
-  useWorkspaceStore((state) => state.workspaces);

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AuthHeader } from '@/components/layout/AuthHeader';
-import { getSession, logoutAction } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { getUserWorkspaceList } from '@/lib/workspace/resolver';
 
 export default async function WorkspaceNotFound() {
@@ -15,7 +15,6 @@ export default async function WorkspaceNotFound() {
         <AuthHeader
           user={session.user}
           workspaces={workspaces}
-          onLogout={logoutAction}
         />
       )}
 

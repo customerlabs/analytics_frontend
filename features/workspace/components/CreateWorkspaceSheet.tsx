@@ -24,14 +24,6 @@ import {
   getBrowserTimezone,
 } from '@/features/customerlabs/utils/form-options';
 
-// Get domain for display (strip protocol)
-const getDisplayDomain = () => {
-  const url =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
-  return url.replace(/^https?:\/\//, '');
-};
-
 interface CreateWorkspaceSheetProps {
   onSuccess?: (workspaceSlug: string) => void;
 }
@@ -39,7 +31,9 @@ interface CreateWorkspaceSheetProps {
 export function CreateWorkspaceSheet({ onSuccess }: CreateWorkspaceSheetProps) {
   const router = useRouter();
   const { isOpen, onOpenChange, close } = useCreateWorkspaceSheet();
-  const displayDomain = getDisplayDomain();
+
+  // Display domain from env (strip protocol)
+  const displayDomain = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/^https?:\/\//, '');
 
   // Form state
   const [name, setName] = useState('');

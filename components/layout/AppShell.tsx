@@ -1,6 +1,5 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { AuthHeader } from '@/components/layout/AuthHeader';
 import { CreateWorkspaceSheet } from '@/features/workspace/components/CreateWorkspaceSheet';
 import type { Workspace, User } from '@/types/workspace';
@@ -9,20 +8,22 @@ interface AppShellProps {
   user: User;
   currentWorkspace?: Workspace | null;
   workspaces?: Workspace[];
+  /** Set to false for routes that render their own header (e.g., workspace routes) */
+  showHeader?: boolean;
   children: React.ReactNode;
-  onLogout: () => Promise<unknown>;
 }
 
+/**
+ * App shell wrapper for dashboard routes.
+ * Workspace routes (/ws/[id]/*) should pass showHeader={false} as they have their own AuthHeader.
+ */
 export function AppShell({
   user,
   currentWorkspace,
   workspaces,
+  showHeader = true,
   children,
-  onLogout,
 }: AppShellProps) {
-  const pathname = usePathname();
-  const showHeader = !pathname.startsWith('/ws/');
-
   return (
     <>
       {showHeader && (
@@ -30,7 +31,6 @@ export function AppShell({
           user={user}
           currentWorkspace={currentWorkspace || undefined}
           workspaces={workspaces}
-          onLogout={onLogout}
         />
       )}
       <div className={showHeader ? 'pt-14' : undefined}>{children}</div>

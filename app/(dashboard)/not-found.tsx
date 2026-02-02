@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { auth, logoutAction } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { getUserWorkspaceList } from '@/lib/workspace/resolver';
 import { AuthHeader } from '@/components/layout/AuthHeader';
 
@@ -15,7 +15,6 @@ export default async function DashboardNotFound() {
         <AuthHeader
           user={session.user}
           workspaces={workspaces}
-          onLogout={logoutAction}
         />
       )}
 

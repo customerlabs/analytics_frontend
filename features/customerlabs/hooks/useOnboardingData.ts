@@ -2,34 +2,23 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { fetchFromBackendAPI } from "@/lib/apiFetcherClient";
+import { useOnboardingSteps } from "@/features/accounts/hooks";
+import {
+  getSettings,
+  updateSettings,
+  skipOnboardingStep,
+  getRecommendations,
+  getStepData,
+  getAvailableEvents,
+} from "../services/onboarding-actions";
 import type {
   StepKey,
+  OnboardingStep,
   OnboardingDataResponse,
-  SaveStepResponse,
   RecommendationsResponse,
   CustomerlabsSettings,
   CustomerlabsSettingsUpdate,
 } from "../types/onboarding";
-
-// Backend CommonResponse wrapper type
-interface CommonResponse<T> {
-  success: boolean;
-  errors?: Array<{ code: number; message: string }> | null;
-  messages?: Array<{ code: number; message: string }> | null;
-  result: T | null;
-  result_info?: {
-    page?: number;
-    per_page?: number;
-    total?: number;
-    total_pages?: number;
-  } | null;
-}
-
-// Base paths for CustomerLabs API
-const CUSTOMERLABS_BASE = "/api/v1/customerlabs";
-const ONBOARDING_BASE = `${CUSTOMERLABS_BASE}/onboarding`;
-const SETTINGS_BASE = `${CUSTOMERLABS_BASE}/settings`;
 
 // Query keys
 export const onboardingKeys = {
@@ -60,22 +49,17 @@ export const settingsKeys = {
  * Use this to get the full configuration data.
  */
 export function useSettings(accountId: string | null) {
-  const { data: session, status } = useSession();
-  const token = session?.accessToken as string | undefined;
+  const { status } = useSession();
 
   return useQuery({
     queryKey: settingsKeys.detail(accountId ?? ""),
     queryFn: async () => {
-      if (!token || !accountId) {
-        throw new Error("Missing authentication or account ID");
+      if (!accountId) {
+        throw new Error("Missing account ID");
       }
-      const response = await fetchFromBackendAPI<CommonResponse<CustomerlabsSettings>>(
-        `${SETTINGS_BASE}?account_id=${encodeURIComponent(accountId)}`,
-        token,
-      );
-      return response?.result ?? null;
+      return getSettings(accountId);
     },
-    enabled: status === "authenticated" && !!token && !!accountId,
+    enabled: status === "authenticated" && !!accountId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
@@ -83,30 +67,16 @@ export function useSettings(accountId: string | null) {
 /**
  * Hook to update settings (partial update).
  * This is the main mutation for saving step data.
- *
- * @example
- * const updateSettings = useUpdateSettings(accountId);
- * await updateSettings.mutateAsync({ conversion_settings: [...] });
  */
 export function useUpdateSettings(accountId: string | null) {
-  const { data: session } = useSession();
-  const token = session?.accessToken as string | undefined;
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: CustomerlabsSettingsUpdate) => {
-      if (!token || !accountId) {
-        throw new Error("Missing authentication or account ID");
+      if (!accountId) {
+        throw new Error("Missing account ID");
       }
-      const response = await fetchFromBackendAPI<CommonResponse<CustomerlabsSettings>>(
-        `${SETTINGS_BASE}?account_id=${encodeURIComponent(accountId)}`,
-        token,
-        {
-          method: "PUT",
-          body: data,
-        },
-      );
-      return response?.result ?? null;
+      return updateSettings(accountId, data);
     },
     onSuccess: () => {
       // Invalidate settings cache
@@ -126,50 +96,63 @@ export function useUpdateSettings(accountId: string | null) {
 // =============================================================================
 
 /**
- * Hook to fetch onboarding data for an account
+ * Hook to fetch onboarding data for an account.
+ * Uses the shared useOnboardingSteps hook internally.
  */
 export function useOnboardingData(accountId: string | null) {
-  const { data: session, status } = useSession();
-  const token = session?.accessToken as string | undefined;
-
-  return useQuery({
-    queryKey: onboardingKeys.data(accountId ?? ""),
-    queryFn: async () => {
-      if (!token || !accountId) {
-        throw new Error("Missing authentication or account ID");
-      }
-      const response = await fetchFromBackendAPI<CommonResponse<OnboardingDataResponse>>(
-        `${ONBOARDING_BASE}?account_id=${encodeURIComponent(accountId)}`,
-        token,
-      );
-      return response?.result ?? null;
-    },
-    // Only enable when session is fully loaded AND we have both token and accountId
-    enabled: status === "authenticated" && !!token && !!accountId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+  // Use the shared hook with CustomerLabs platform
+  const {
+    data: sharedData,
+    isLoading,
+    error,
+    refetch,
+  } = useOnboardingSteps({
+    accountId,
+    platform: "CustomerLabs",
+    enabled: !!accountId,
   });
+
+  // Transform shared data to match CustomerLabs OnboardingDataResponse format
+  const data: OnboardingDataResponse | null = sharedData
+    ? {
+        steps: sharedData.steps.map((step) => ({
+          step_key: step.step_key as StepKey,
+          title: step.title,
+          description: step.description ?? undefined,
+          step_order: step.step_order,
+          is_required: step.is_required,
+          skippable_type: step.skippable_type as "permanent" | "temporary" | null,
+          auto_fill_enabled: step.auto_fill_enabled,
+        })) as OnboardingStep[],
+        current_step: sharedData.current_step as StepKey,
+        completed_steps: sharedData.completed_steps as StepKey[],
+        step_data: {}, // Step data is fetched separately via useSettings
+      }
+    : null;
+
+  return {
+    data,
+    isLoading,
+    error,
+    refetch,
+  };
 }
 
 /**
  * Hook to fetch step-specific data from the step endpoint
  */
 export function useStepData<T>(accountId: string | null, stepKey: StepKey) {
-  const { data: session, status } = useSession();
-  const token = session?.accessToken as string | undefined;
+  const { status } = useSession();
 
   return useQuery({
     queryKey: onboardingKeys.stepData(accountId ?? "", stepKey),
     queryFn: async () => {
-      if (!token || !accountId) {
-        throw new Error("Missing authentication or account ID");
+      if (!accountId) {
+        throw new Error("Missing account ID");
       }
-      const response = await fetchFromBackendAPI<CommonResponse<T>>(
-        `${ONBOARDING_BASE}/step/${stepKey}?account_id=${encodeURIComponent(accountId)}`,
-        token,
-      );
-      return response?.result ?? null;
+      return getStepData<T>(accountId, stepKey);
     },
-    enabled: status === "authenticated" && !!token && !!accountId,
+    enabled: status === "authenticated" && !!accountId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
@@ -178,8 +161,6 @@ export function useStepData<T>(accountId: string | null, stepKey: StepKey) {
  * Hook to skip an onboarding step.
  */
 export function useSkipStep(accountId: string | null) {
-  const { data: session } = useSession();
-  const token = session?.accessToken as string | undefined;
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -190,18 +171,10 @@ export function useSkipStep(accountId: string | null) {
       stepKey: StepKey;
       skipType?: "permanent" | "temporary";
     }) => {
-      if (!token || !accountId) {
-        throw new Error("Missing authentication or account ID");
+      if (!accountId) {
+        throw new Error("Missing account ID");
       }
-      const response = await fetchFromBackendAPI<CommonResponse<SaveStepResponse>>(
-        `${ONBOARDING_BASE}/step/${stepKey}/skip?account_id=${encodeURIComponent(accountId)}`,
-        token,
-        {
-          method: "POST",
-          body: { skip_type: skipType },
-        },
-      );
-      return response?.result ?? null;
+      return skipOnboardingStep(stepKey, accountId, skipType);
     },
     onSuccess: (_data, variables) => {
       // Invalidate the onboarding data query
@@ -218,32 +191,19 @@ export function useSkipStep(accountId: string | null) {
 
 /**
  * Hook to fetch all AI recommendations for an account.
- *
- * This fetches recommendations for all configuration types in a single call:
- * - Conversion events
- * - Product events
- * - UTM mappings
- * - Click ID mappings
- *
- * Call this once at the start of onboarding and use the cached data across all steps.
  */
 export function useRecommendations(accountId: string | null, enabled = true) {
-  const { data: session, status } = useSession();
-  const token = session?.accessToken as string | undefined;
+  const { status } = useSession();
 
   return useQuery({
     queryKey: onboardingKeys.recommendations(accountId ?? ""),
     queryFn: async () => {
-      if (!token || !accountId) {
-        throw new Error("Missing authentication or account ID");
+      if (!accountId) {
+        throw new Error("Missing account ID");
       }
-      const response = await fetchFromBackendAPI<CommonResponse<RecommendationsResponse>>(
-        `${CUSTOMERLABS_BASE}/recommendations?account_id=${encodeURIComponent(accountId)}`,
-        token,
-      );
-      return response?.result ?? null;
+      return getRecommendations(accountId);
     },
-    enabled: status === "authenticated" && !!token && !!accountId && enabled,
+    enabled: status === "authenticated" && !!accountId && enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes - recommendations don't change frequently
   });
 }
@@ -252,22 +212,17 @@ export function useRecommendations(accountId: string | null, enabled = true) {
  * Hook to fetch available events for the account
  */
 export function useAvailableEvents(accountId: string | null) {
-  const { data: session, status } = useSession();
-  const token = session?.accessToken as string | undefined;
+  const { status } = useSession();
 
   return useQuery({
     queryKey: onboardingKeys.availableEvents(accountId ?? ""),
     queryFn: async () => {
-      if (!token || !accountId) {
-        throw new Error("Missing authentication or account ID");
+      if (!accountId) {
+        throw new Error("Missing account ID");
       }
-      const response = await fetchFromBackendAPI<CommonResponse<{ events: string[]; total: number }>>(
-        `/api/v1/accounts/${accountId}/events`,
-        token,
-      );
-      return response?.result ?? null;
+      return getAvailableEvents(accountId);
     },
-    enabled: status === "authenticated" && !!token && !!accountId,
+    enabled: status === "authenticated" && !!accountId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

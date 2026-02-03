@@ -3,12 +3,12 @@
 import { fetchFromBackendAPI } from "@/lib/apiFetcherServer";
 import {
   StepKey,
-  type OnboardingDataResponse,
   type SaveStepResponse,
   type RecommendationsResponse,
   type DataAvailabilityData,
   type CustomerlabsSettings,
   type CustomerlabsSettingsUpdate,
+  type OnboardingDataResponse,
 } from "../types/onboarding";
 
 // Base paths for CustomerLabs API
@@ -52,17 +52,8 @@ export async function updateSettings(
 // =============================================================================
 // Onboarding Progress API (for tracking step completion)
 // =============================================================================
-
-/**
- * Get onboarding data for an account
- */
-export async function getOnboardingData(
-  accountId: string,
-): Promise<OnboardingDataResponse> {
-  return fetchFromBackendAPI<OnboardingDataResponse>(
-    `${ONBOARDING_BASE}?account_id=${encodeURIComponent(accountId)}`,
-  );
-}
+// Note: getOnboardingData removed - use the shared useOnboardingSteps hook instead
+// which fetches from /api/v1/accounts/onboarding?platform=CustomerLabs
 
 /**
  * Skip an onboarding step.
@@ -123,4 +114,37 @@ export async function resetOnboarding(
       method: "POST",
     },
   );
+}
+
+/**
+ * Get step-specific data for an onboarding step
+ */
+export async function getStepData<T>(
+  accountId: string,
+  stepKey: StepKey,
+): Promise<T | null> {
+  interface CommonResponse<R> {
+    success: boolean;
+    result: R | null;
+  }
+  const response = await fetchFromBackendAPI<CommonResponse<T>>(
+    `${ONBOARDING_BASE}/step/${stepKey}?account_id=${encodeURIComponent(accountId)}`,
+  );
+  return response?.result ?? null;
+}
+
+/**
+ * Get available events for an account
+ */
+export async function getAvailableEvents(
+  accountId: string,
+): Promise<{ events: string[]; total: number } | null> {
+  interface CommonResponse<R> {
+    success: boolean;
+    result: R | null;
+  }
+  const response = await fetchFromBackendAPI<CommonResponse<{ events: string[]; total: number }>>(
+    `/api/v1/accounts/${accountId}/events`,
+  );
+  return response?.result ?? null;
 }

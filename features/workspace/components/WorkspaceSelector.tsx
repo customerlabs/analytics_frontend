@@ -171,18 +171,13 @@ export function WorkspaceSelector({
   }, [workspaceList, selectedOrgId, searchQuery]);
 
   const handleWorkspaceSwitch = async (workspace: Workspace) => {
-    if (effectiveCurrentWorkspace && workspace.id === effectiveCurrentWorkspace.id) {
-      setIsOpen(false);
-      return;
-    }
-
     setIsSwitching(true);
 
     try {
       // Update local state
       setActiveWorkspace(workspace);
 
-      // Navigate to dashboard with new workspace
+      // Always navigate to workspace root (even if same workspace)
       switchWorkspace(workspace.slug);
 
       // Close modal after a brief delay to allow navigation to start

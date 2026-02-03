@@ -26,6 +26,13 @@ export interface CustomerLabsAccountData {
   region?: string;
 }
 
+export interface AccountTemplateMinimal {
+  id: string;
+  name: string;
+  platform: string;
+  assets: { icon?: string; color?: string };
+}
+
 export interface CreateAccountInput {
   workspace_id: string;
   account_id: string;
@@ -47,6 +54,7 @@ export interface AccountResponse {
   status: AccountStatus;
   auth_data: Record<string, unknown>;
   config_data: Record<string, unknown>;
+  template?: AccountTemplateMinimal;
   created_at: string;
   updated_at: string;
 }

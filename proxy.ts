@@ -31,7 +31,6 @@ export const proxy = auth((req) => {
     return NextResponse.next();
   }
 
-
   // Protected app routes: require authentication
   const isProtected = protectedRoutes.some(
     (route) => pathname === route || pathname.startsWith(route + "/")

@@ -36,9 +36,6 @@ export async function fetchFromAPI<T>(
 
   const url = endpoint.startsWith('http') ? endpoint : new URL(endpoint, baseUrl).toString();
 
-  // Extract resource type from endpoint for auto-tagging (e.g., /api/v1/audio/trending → 'audio')
-  const resourceMatch = endpoint.match(/\/api\/v1\/([^\/]+)/);
-  const resourceType = resourceMatch ? resourceMatch[1] : 'default';
 
   // Build headers
   const headers: HeadersInit = {
@@ -47,11 +44,22 @@ export async function fetchFromAPI<T>(
 
   // Use Bearer token for backend API, cookies for internal API
   if (options?.useBackendAPI) {
-    // Use provided token or fall back to getSession()
+    // Use provided token or fall back to session
     let accessToken = options?.accessToken;
 
     if (!accessToken) {
       const session = await getSession();
+
+      // Check for token refresh failure before using expired token
+      if (session?.error === "RefreshTokenError") {
+        throw new APIError(
+          "Your session has expired. Please sign in again.",
+          401,
+          endpoint,
+          "SessionExpired"
+        );
+      }
+
       accessToken = session?.accessToken;
     }
 

@@ -177,3 +177,74 @@ export async function createFacebookAdsAccount(params: {
 
   return response.result;
 }
+
+// Facebook Settings Types
+export interface LeadConfig {
+  primaryEvent: string;
+  primaryEventMapping: string;
+}
+
+export interface EcommerceConfig {
+  purchaseEvent: string;
+  purchaseEventMapping: string;
+}
+
+export interface FacebookSettingsResponse {
+  account_id: string;
+  pixel_id: string | null;
+  pixel_name: string | null;
+  business_type: string;
+  lead_config: LeadConfig;
+  ecommerce_config: EcommerceConfig;
+  product_insights_enabled: boolean;
+}
+
+export interface FacebookSettingsUpdate {
+  step_key?: string;
+  pixel_id?: string;
+  pixel_name?: string;
+  business_type?: string;
+  lead_config?: LeadConfig;
+  ecommerce_config?: EcommerceConfig;
+  product_insights_enabled?: boolean;
+}
+
+/**
+ * Get Facebook settings for an account
+ */
+export async function getFacebookSettings(
+  accountId: string
+): Promise<FacebookSettingsResponse> {
+  const response = await fetchFromBackendAPI<
+    CommonResponse<FacebookSettingsResponse>
+  >(`/api/v1/facebook/settings?account_id=${accountId}`, {
+    method: "GET",
+  });
+
+  if (!response?.result) {
+    throw new Error("Failed to get Facebook settings");
+  }
+
+  return response.result;
+}
+
+/**
+ * Update Facebook settings for an account
+ */
+export async function updateFacebookSettings(
+  accountId: string,
+  data: FacebookSettingsUpdate
+): Promise<FacebookSettingsResponse> {
+  const response = await fetchFromBackendAPI<
+    CommonResponse<FacebookSettingsResponse>
+  >(`/api/v1/facebook/settings?account_id=${accountId}`, {
+    method: "PUT",
+    body: data,
+  });
+
+  if (!response?.result) {
+    throw new Error("Failed to update Facebook settings");
+  }
+
+  return response.result;
+}

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 /**
  * Get current session (request-scoped cache)
- * Use this to access the full session object including accessToken
+ * Use this to access session user info (does NOT include accessToken)
  * Deduplicates auth() calls within the same server request
  */
 export const getSession = cache(async () => {

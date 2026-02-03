@@ -4,16 +4,19 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
   SheetFooter,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, ArrowRightIcon, SkipForwardIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  SkipForwardIcon,
+  Settings,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OnboardingStepContent } from "./OnboardingStepContent";
-import { StepIndicator } from "./shared/StepIndicator";
+import { ConfigDrawerHeader } from "@/components/shared";
 import {
   useOnboardingSheet,
   useOnboardingAccountId,
@@ -36,19 +39,11 @@ export function OnboardingSheet() {
   const {
     isOpen,
     close,
-    steps,
     currentStepKey,
-    completedSteps,
-    setSteps,
-    setCompletedSteps,
     setCurrentStep,
     markStepCompleted,
     markStepSkipped,
     setStepData,
-    getCurrentStepIndex,
-    getNextStep,
-    getPreviousStep,
-    canSkipCurrentStep,
   } = useOnboardingSheet();
 
   const accountId = useOnboardingAccountId();
@@ -56,40 +51,20 @@ export function OnboardingSheet() {
   const skipStepMutation = useSkipStep(accountId);
   const updateSettingsMutation = useUpdateSettings(accountId);
 
+  // Use React Query data directly
+  const steps = onboardingData?.steps ?? [];
+  const completedSteps = onboardingData?.completed_steps ?? [];
+
   const [isValid, setIsValid] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(
-    null,
-  );
+  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
   const getDataRef = useRef<(() => StepData | null) | null>(null);
 
-  // Initialize steps from API data
+  // Set initial currentStepKey from API data when it first loads
   useEffect(() => {
-    if (onboardingData) {
-      setSteps(onboardingData.steps);
-      setCompletedSteps(onboardingData.completed_steps);
-
-      // Set current step if not already set
-      if (!currentStepKey && onboardingData.current_step) {
-        setCurrentStep(onboardingData.current_step);
-      }
-
-      // Load existing step data
-      if (onboardingData.step_data) {
-        Object.entries(onboardingData.step_data).forEach(([key, data]) => {
-          if (data) {
-            setStepData(key as StepKey, data);
-          }
-        });
-      }
+    if (onboardingData?.current_step && !currentStepKey) {
+      setCurrentStep(onboardingData.current_step);
     }
-  }, [
-    onboardingData,
-    setSteps,
-    setCompletedSteps,
-    setCurrentStep,
-    setStepData,
-    currentStepKey,
-  ]);
+  }, [onboardingData?.current_step, currentStepKey, setCurrentStep]);
 
   const handleValidationChange = useCallback((valid: boolean) => {
     setIsValid(valid);
@@ -106,6 +81,29 @@ export function OnboardingSheet() {
       return () => clearTimeout(timer);
     }
   }, [slideDirection]);
+
+  // Helper functions using React Query data directly
+  const getCurrentStepIndex = () => {
+    if (!currentStepKey) return -1;
+    return steps.findIndex((s) => s.step_key === currentStepKey);
+  };
+
+  const getNextStep = (): StepKey | null => {
+    const currentIndex = getCurrentStepIndex();
+    if (currentIndex === -1 || currentIndex >= steps.length - 1) return null;
+    return steps[currentIndex + 1].step_key;
+  };
+
+  const getPreviousStep = (): StepKey | null => {
+    const currentIndex = getCurrentStepIndex();
+    if (currentIndex <= 0) return null;
+    return steps[currentIndex - 1].step_key;
+  };
+
+  const canSkipCurrentStep = () => {
+    const currentStep = steps.find((s) => s.step_key === currentStepKey);
+    return currentStep?.skippable_type !== null && !currentStep?.is_required;
+  };
 
   const handleGoBack = () => {
     const previousStep = getPreviousStep();
@@ -140,7 +138,6 @@ export function OnboardingSheet() {
         setSlideDirection("left");
         setCurrentStep(nextStep);
       } else {
-        // All steps completed
         close();
       }
     } catch (error) {
@@ -153,8 +150,7 @@ export function OnboardingSheet() {
 
     const data = getDataRef.current?.() ?? null;
 
-    // Build payload based on step type - backend expects arrays for event configs
-    let payload: CustomerlabsSettingsUpdate = { step_key: currentStepKey };
+    const payload: CustomerlabsSettingsUpdate = { step_key: currentStepKey };
 
     if (data) {
       switch (currentStepKey) {
@@ -168,7 +164,6 @@ export function OnboardingSheet() {
           payload.product_settings = [data as ProductEventsConfig];
           break;
         case StepKey.BASIC_ACCOUNT:
-          // Basic account uses flat fields, spread directly
           Object.assign(payload, data);
           break;
         default:
@@ -177,8 +172,6 @@ export function OnboardingSheet() {
     }
 
     try {
-      // Use the unified settings endpoint for saving step data
-      // Include step_key so backend marks the step as completed
       await updateSettingsMutation.mutateAsync(payload);
       if (data) {
         setStepData(currentStepKey, data);
@@ -190,7 +183,6 @@ export function OnboardingSheet() {
         setSlideDirection("left");
         setCurrentStep(nextStep);
       } else {
-        // All steps completed
         close();
       }
     } catch (error) {
@@ -210,30 +202,20 @@ export function OnboardingSheet() {
         className="w-full max-w-3xl p-0 flex flex-col"
         showCloseButton={false}
       >
-        {/* Header */}
-        <SheetHeader className="p-6 pb-4 border-b border-border">
-          <div className="flex items-start justify-between">
-            <div>
-              <SheetTitle className="text-xl">Account Setup</SheetTitle>
-              <SheetDescription>
-                Configure your account for optimal data collection and tracking.
-              </SheetDescription>
-            </div>
-            <Button variant="ghost" size="sm" onClick={close}>
-              Close
-            </Button>
-          </div>
-        </SheetHeader>
+        {/* Visually hidden title for accessibility */}
+        <SheetTitle className="sr-only">Account Setup</SheetTitle>
 
-        {/* Step Indicator */}
-        <div className="px-6 py-4 border-b border-border bg-muted/30">
-          <StepIndicator
-            steps={steps}
-            currentStepKey={currentStepKey}
-            completedSteps={completedSteps}
-            onStepClick={handleStepClick}
-          />
-        </div>
+        {/* Header with Step Indicator */}
+        <ConfigDrawerHeader<StepKey>
+          icon={<Settings className="w-6 h-6 text-primary-foreground" />}
+          title="Account Setup"
+          description="Configure your account for optimal data collection and tracking."
+          onClose={close}
+          steps={steps.map((s) => ({ id: s.step_key, label: s.title }))}
+          currentStep={currentStepKey!}
+          completedSteps={completedSteps}
+          onStepClick={handleStepClick}
+        />
 
         {/* Main Content Area with slide animation */}
         <div className="flex-1 overflow-hidden">

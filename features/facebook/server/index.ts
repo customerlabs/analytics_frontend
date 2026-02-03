@@ -2,7 +2,13 @@ export {
   listFacebookAdAccounts,
   createFacebookAdsAccount,
   clearFacebookToken,
+  getFacebookSettings,
+  updateFacebookSettings,
   type AccountResponse,
+  type FacebookSettingsResponse,
+  type FacebookSettingsUpdate,
+  type LeadConfig,
+  type EcommerceConfig,
 } from "./actions";
 
 export {

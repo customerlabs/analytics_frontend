@@ -4,7 +4,8 @@ import {
   resolveWorkspaceOrRedirect,
 } from '@/lib/workspace/resolver';
 import { AuthHeader } from '@/components/layout/AuthHeader';
-import { TabNavigation, defaultTabs } from '@/components/layout/TabNavigation';
+import { WorkspaceTabsWrapper } from '@/components/layout/WorkspaceTabsWrapper';
+import { WorkspaceMainWrapper } from '@/components/layout/WorkspaceMainWrapper';
 import { WorkspaceProvider } from '@/lib/workspace/context';
 
 interface WorkspaceLayoutProps {
@@ -36,15 +37,14 @@ export default async function WorkspaceLayout({
         />
 
         <div className="pt-14">
-          <TabNavigation
-            tabs={defaultTabs}
+          <WorkspaceTabsWrapper
             workspaceId={workspace.slug}
             className="sticky top-14 z-40"
           />
 
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <WorkspaceMainWrapper>
             {children}
-          </main>
+          </WorkspaceMainWrapper>
         </div>
 
         {modal}

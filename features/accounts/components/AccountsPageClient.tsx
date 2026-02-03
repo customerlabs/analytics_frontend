@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, X, Trash2, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { AddAccountPanel } from "./AddAccountPanel";
 import { OnboardingSheet } from "@/features/customerlabs/components/OnboardingSheet";
 import { useOnboardingSheet } from "@/features/customerlabs/hooks/useOnboardingSheet";
+import { FacebookConfigDrawer } from "@/features/facebook";
+import { useFacebookConfigStore } from "@/features/facebook/hooks/useFacebookConfig";
 import { useWorkspaceAccounts } from "../hooks";
 import { deleteAccount, type AccountStatus } from "@/lib/api/accounts";
 import type { AccountResponse } from "@/features/facebook";
@@ -30,11 +33,16 @@ export function AccountsPageClient({
     useWorkspaceAccounts({ workspaceId });
 
   const openOnboarding = useOnboardingSheet((state) => state.open);
+  const openFacebookConfig = useFacebookConfigStore((state) => state.open);
 
-  const handleOpenAccount = (accountId: string, status: AccountStatus) => {
+  const handleOpenAccount = (accountId: string, status: AccountStatus, accountType: string) => {
     if (status === "pending" || status === "draft") {
-      // Open onboarding sheet for incomplete accounts
-      openOnboarding(accountId);
+      // Open appropriate drawer based on account type
+      if (accountType === "ads") {
+        openFacebookConfig(accountId);
+      } else {
+        openOnboarding(accountId);
+      }
     } else {
       // Navigate to account page for active accounts
       router.push(`/ws/${workspaceId}/accounts/${accountId}`);
@@ -49,16 +57,16 @@ export function AccountsPageClient({
       // Close the add panel
       setShowAddPanel(false);
 
-      // Only open CustomerLabs onboarding for customerlabs accounts that need setup
-      if (
-        account.account_type === "customerlabs" &&
-        (account.status === "pending" || account.status === "draft")
-      ) {
-        openOnboarding(account.id);
+      // Open appropriate drawer based on account type for accounts that need setup
+      if (account.status === "pending" || account.status === "draft") {
+        if (account.account_type === "ads") {
+          openFacebookConfig(account.id);
+        } else if (account.account_type === "customerlabs") {
+          openOnboarding(account.id);
+        }
       }
-      // For ads accounts (Facebook, etc.), account is already active - no onboarding needed
     },
-    [queryClient, workspaceId, openOnboarding]
+    [queryClient, workspaceId, openOnboarding, openFacebookConfig]
   );
 
   const handleRemoveAccount = async (accountId: string, accountName: string) => {
@@ -182,29 +190,33 @@ export function AccountsPageClient({
           </div>
         ) : (
           // Accounts Table
-          <table className="w-full">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Account
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Account ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Setup Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Timezone
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Currency
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px]">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[20%]">
+                    Account
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[12%]">
+                    Platform
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[18%]">
+                    Account ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[12%]">
+                    Setup Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[12%]">
+                    Timezone
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[10%]">
+                    Currency
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[16%]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
             <tbody className="divide-y divide-border">
               {accounts.map((account) => {
                 const isRemoving = removingId === account.id;
@@ -214,12 +226,25 @@ export function AccountsPageClient({
                 const timezone = (account.config_data?.timezone as string) || "-";
                 const currency = (account.config_data?.currency as string) || "-";
 
+                const accountUrl = `/ws/${workspaceId}/accounts/${account.id}`;
+
                 return (
-                  <tr key={account.id} className="hover:bg-muted/50 transition-colors">
+                  <tr
+                    key={account.id}
+                    className="hover:bg-muted/50 transition-colors group relative"
+                  >
                     <td className="px-6 py-4">
-                      <div className="font-medium text-foreground">
+                      <Link
+                        href={accountUrl}
+                        className="font-medium text-foreground after:absolute after:inset-0 after:content-['']"
+                      >
                         {account.unique_name}
-                      </div>
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-muted text-muted-foreground rounded">
+                        {account.template?.name || account.account_type}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <code className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">
@@ -235,19 +260,19 @@ export function AccountsPageClient({
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {currency}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right relative z-10">
                       <div className="flex items-center justify-end gap-2">
                         {/* Open / Complete Setup Button */}
                         {account.status === "active" ? (
                           <button
-                            onClick={() => handleOpenAccount(account.id, account.status)}
+                            onClick={() => handleOpenAccount(account.id, account.status, account.account_type)}
                             className="px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
                           >
                             Open
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleOpenAccount(account.id, account.status)}
+                            onClick={() => handleOpenAccount(account.id, account.status, account.account_type)}
                             className="px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors dark:text-amber-400 dark:bg-amber-900/20 dark:border-amber-800"
                           >
                             Complete Setup
@@ -278,12 +303,16 @@ export function AccountsPageClient({
                 );
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
         )}
       </div>
 
       {/* CustomerLabs Onboarding Sheet */}
       <OnboardingSheet />
+
+      {/* Facebook Config Drawer */}
+      <FacebookConfigDrawer />
     </div>
   );
 }

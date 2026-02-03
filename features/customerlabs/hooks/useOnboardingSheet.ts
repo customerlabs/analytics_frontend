@@ -73,7 +73,12 @@ export const useOnboardingSheet = create<OnboardingSheetState>((set, get) => ({
   },
 
   close: () => {
-    set({ isOpen: false });
+    set({
+      isOpen: false,
+      currentStepKey: null,
+      steps: [],
+      completedSteps: [],
+    });
   },
 
   setCurrentStep: (stepKey: StepKey) => {

@@ -5,6 +5,13 @@ import type { NextAuthConfig } from "next-auth";
 import { LoginSchema } from "@/schemas/loginSchema";
 import { DEFAULT_SCOPES } from "./keycloak/config";
 
+// Token refresh buffer - refresh this many seconds before actual expiry
+// to prevent tokens expiring mid-flight during API requests
+const TOKEN_REFRESH_BUFFER_SECONDS = parseInt(
+  process.env.TOKEN_REFRESH_BUFFER_SECONDS || "60",
+  10
+);
+
 // Provider configuration
 const authConfig = {
   providers: [
@@ -78,7 +85,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           ...token,
           accessToken: account.access_token,
           refreshToken: account.refresh_token,
-          expiresAt: account.expires_at,
+          expiresAt: (account.expires_at ?? 0) - TOKEN_REFRESH_BUFFER_SECONDS,
           id: profile?.sub,
         };
       }
@@ -89,7 +96,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           ...token,
           accessToken: user.accessToken,
           refreshToken: user.refreshToken,
-          expiresAt: user.expiresAt,
+          expiresAt: (user.expiresAt ?? 0) - TOKEN_REFRESH_BUFFER_SECONDS,
           id: user.id,
         };
       }
@@ -121,7 +128,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               ...token,
               accessToken: tokens.access_token,
               refreshToken: tokens.refresh_token ?? token.refreshToken,
-              expiresAt: Math.floor(Date.now() / 1000) + tokens.expires_in,
+              expiresAt:
+                Math.floor(Date.now() / 1000) +
+                tokens.expires_in -
+                TOKEN_REFRESH_BUFFER_SECONDS,
             };
           }
 
@@ -139,6 +149,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session: async ({ session, token }) => {
       if (token && session.user) {
         session.user.id = token.id as string;
+        // accessToken is needed server-side for API calls
+        // Client code uses server actions and doesn't access this directly
         session.accessToken = token.accessToken as string;
       }
       // Propagate refresh error to session (per Auth.js docs)

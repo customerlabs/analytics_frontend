@@ -248,3 +248,53 @@ export async function updateFacebookSettings(
 
   return response.result;
 }
+
+// Pixel and Event Types
+export interface FacebookPixel {
+  id: string;
+  name: string;
+}
+
+export interface PixelEvent {
+  value: string;
+  label: string;
+  count: number;
+  is_custom: boolean;
+}
+
+/**
+ * Fetch pixels for an account from the backend (calls Facebook Graph API)
+ */
+export async function fetchAccountPixels(
+  accountId: string
+): Promise<FacebookPixel[]> {
+  const response = await fetchFromBackendAPI<CommonResponse<FacebookPixel[]>>(
+    `/api/v1/facebook/pixels?account_id=${accountId}`,
+    { method: "GET" }
+  );
+
+  if (!response?.result) {
+    throw new Error("Failed to fetch pixels");
+  }
+
+  return response.result;
+}
+
+/**
+ * Fetch events for a pixel from the backend (calls Facebook Graph API)
+ */
+export async function fetchPixelEvents(
+  accountId: string,
+  pixelId: string
+): Promise<PixelEvent[]> {
+  const response = await fetchFromBackendAPI<CommonResponse<PixelEvent[]>>(
+    `/api/v1/facebook/events?account_id=${accountId}&pixel_id=${pixelId}`,
+    { method: "GET" }
+  );
+
+  if (!response?.result) {
+    throw new Error("Failed to fetch pixel events");
+  }
+
+  return response.result;
+}

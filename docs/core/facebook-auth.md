@@ -103,7 +103,6 @@ features/facebook/
 FACEBOOK_APP_ID=your_app_id
 FACEBOOK_APP_SECRET=your_app_secret
 FACEBOOK_CONFIG_ID=your_business_login_config_id
-FACEBOOK_GRAPH_API_VERSION=v24.0
 SESSION_SECRET=your_session_secret  # For AES-256-GCM encryption
 
 # Client-side (public - for OAuth URL building)

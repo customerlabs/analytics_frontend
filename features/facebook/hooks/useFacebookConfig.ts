@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useCallback } from "react";
 import { create } from "zustand";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useOnboardingSteps } from "@/features/accounts/hooks";
 import {
-  getFacebookSettings,
   updateFacebookSettings,
+  fetchAccountPixels,
+  fetchPixelEvents,
   type FacebookSettingsUpdate,
 } from "../server";
 import type {
@@ -56,10 +58,18 @@ interface FacebookConfigState {
   setBusinessType: (type: BusinessType) => void;
   updateForm: (updates: Partial<ConfigFormState>) => void;
   updateLeadConfig: (updates: Partial<ConfigFormState["lead"]>) => void;
-  updateEcommerceConfig: (updates: Partial<ConfigFormState["ecommerce"]>) => void;
+  updateEcommerceConfig: (
+    updates: Partial<ConfigFormState["ecommerce"]>,
+  ) => void;
   updateProductsConfig: (updates: Partial<ConfigFormState["products"]>) => void;
-  setEventVerification: (event: string, verification: EventVerification) => void;
-  setMappingVerification: (mapping: string, verification: EventVerification) => void;
+  setEventVerification: (
+    event: string,
+    verification: EventVerification,
+  ) => void;
+  setMappingVerification: (
+    mapping: string,
+    verification: EventVerification,
+  ) => void;
   setValidationError: (error: string | null) => void;
   reset: () => void;
 
@@ -85,173 +95,182 @@ const initialState = {
   mappingVerification: new Map<string, EventVerification>(),
 };
 
-export const useFacebookConfigStore = create<FacebookConfigState>((set, get) => ({
-  ...initialState,
+export const useFacebookConfigStore = create<FacebookConfigState>(
+  (set, get) => ({
+    ...initialState,
 
-  open: (accountId: string) => {
-    set({
-      isOpen: true,
-      accountId,
-      step: 1,
-      loading: true,
-      validationError: null,
-      pixels: [],
-      pixelEvents: [],
-      conversionEvents: [],
-    });
-    // Loading state will be set to false when data is fetched from API
-    set({ loading: false });
-  },
+    open: (accountId: string) => {
+      set({
+        isOpen: true,
+        accountId,
+        step: 1,
+        loading: true,
+        validationError: null,
+        pixels: [],
+        pixelEvents: [],
+        conversionEvents: [],
+      });
+      // Loading state will be set to false when data is fetched via React Query
+    },
 
-  close: () => {
-    set({ isOpen: false });
-    // Reset after animation
-    setTimeout(() => {
-      get().reset();
-    }, 300);
-  },
+    close: () => {
+      set({ isOpen: false });
+      // Reset after animation
+      setTimeout(() => {
+        get().reset();
+      }, 300);
+    },
 
-  setStep: (step: ConfigStep) => {
-    const currentStep = get().step;
-    // Only allow going to completed steps or current step
-    if (step <= currentStep) {
-      set({ step, validationError: null });
-    }
-  },
+    setStep: (step: ConfigStep) => {
+      const currentStep = get().step;
+      // Only allow going to completed steps or current step
+      if (step <= currentStep) {
+        set({ step, validationError: null });
+      }
+    },
 
-  nextStep: () => {
-    const { step, canProceedToStep } = get();
-    const nextStep = (step + 1) as ConfigStep;
-    if (nextStep <= 3 && canProceedToStep(nextStep)) {
-      set({ step: nextStep, validationError: null });
-    }
-  },
+    nextStep: () => {
+      const { step, canProceedToStep } = get();
+      const nextStep = (step + 1) as ConfigStep;
+      if (nextStep <= 3 && canProceedToStep(nextStep)) {
+        set({ step: nextStep, validationError: null });
+      }
+    },
 
-  prevStep: () => {
-    const { step } = get();
-    if (step > 1) {
-      set({ step: (step - 1) as ConfigStep, validationError: null });
-    }
-  },
+    prevStep: () => {
+      const { step } = get();
+      if (step > 1) {
+        set({ step: (step - 1) as ConfigStep, validationError: null });
+      }
+    },
 
-  setLoading: (loading: boolean) => set({ loading }),
+    setLoading: (loading: boolean) => set({ loading }),
 
-  setSaving: (saving: boolean) => set({ saving }),
+    setSaving: (saving: boolean) => set({ saving }),
 
-  setPixels: (pixels: FacebookPixel[]) => set({ pixels }),
+    setPixels: (pixels: FacebookPixel[]) => set({ pixels }),
 
-  selectPixel: (pixelId: string) => {
-    set((state) => ({
-      selectedPixelId: pixelId,
-      form: { ...state.form, pixelId },
-      loadingEvents: true,
-      pixelEvents: [],
-      eventVerification: new Map(),
-      // Clear event selections when pixel changes
-      ...(state.selectedPixelId !== pixelId && {
+    selectPixel: (pixelId: string) => {
+      const currentPixelId = get().selectedPixelId;
+
+      // If selecting the same pixel, don't reset state (data is already cached)
+      if (currentPixelId === pixelId) {
+        return;
+      }
+
+      set((state) => ({
+        selectedPixelId: pixelId,
         form: {
           ...state.form,
           pixelId,
           lead: { ...DEFAULT_CONFIG_FORM.lead },
           ecommerce: { ...DEFAULT_CONFIG_FORM.ecommerce },
         },
-      }),
-    }));
-    // Events will be loaded from API - loadingEvents will be set false when data arrives
-  },
+        loadingEvents: true,
+        pixelEvents: [],
+        eventVerification: new Map(),
+      }));
+      // Events will be loaded from API - loadingEvents will be set false when data arrives
+    },
 
-  setPixelEvents: (events: ConversionEvent[]) => set({ pixelEvents: events }),
+    setPixelEvents: (events: ConversionEvent[]) => set({ pixelEvents: events }),
 
-  setConversionEvents: (events: ActionType[]) => set({ conversionEvents: events }),
+    setConversionEvents: (events: ActionType[]) =>
+      set({ conversionEvents: events }),
 
-  setLoadingEvents: (loading: boolean) => set({ loadingEvents: loading }),
+    setLoadingEvents: (loading: boolean) => set({ loadingEvents: loading }),
 
-  setBusinessType: (type: BusinessType) => {
-    set((state) => ({
-      form: { ...state.form, businessType: type },
-      validationError: null,
-    }));
-  },
+    setBusinessType: (type: BusinessType) => {
+      set((state) => ({
+        form: { ...state.form, businessType: type },
+        validationError: null,
+      }));
+    },
 
-  updateForm: (updates: Partial<ConfigFormState>) => {
-    set((state) => ({
-      form: { ...state.form, ...updates },
-    }));
-  },
+    updateForm: (updates: Partial<ConfigFormState>) => {
+      set((state) => ({
+        form: { ...state.form, ...updates },
+      }));
+    },
 
-  updateLeadConfig: (updates: Partial<ConfigFormState["lead"]>) => {
-    set((state) => ({
-      form: {
-        ...state.form,
-        lead: { ...state.form.lead, ...updates },
-      },
-    }));
-  },
+    updateLeadConfig: (updates: Partial<ConfigFormState["lead"]>) => {
+      set((state) => ({
+        form: {
+          ...state.form,
+          lead: { ...state.form.lead, ...updates },
+        },
+      }));
+    },
 
-  updateEcommerceConfig: (updates: Partial<ConfigFormState["ecommerce"]>) => {
-    set((state) => ({
-      form: {
-        ...state.form,
-        ecommerce: { ...state.form.ecommerce, ...updates },
-      },
-    }));
-  },
+    updateEcommerceConfig: (updates: Partial<ConfigFormState["ecommerce"]>) => {
+      set((state) => ({
+        form: {
+          ...state.form,
+          ecommerce: { ...state.form.ecommerce, ...updates },
+        },
+      }));
+    },
 
-  updateProductsConfig: (updates: Partial<ConfigFormState["products"]>) => {
-    set((state) => ({
-      form: {
-        ...state.form,
-        products: { ...state.form.products, ...updates },
-      },
-    }));
-  },
+    updateProductsConfig: (updates: Partial<ConfigFormState["products"]>) => {
+      set((state) => ({
+        form: {
+          ...state.form,
+          products: { ...state.form.products, ...updates },
+        },
+      }));
+    },
 
-  setEventVerification: (event: string, verification: EventVerification) => {
-    set((state) => {
-      const newMap = new Map(state.eventVerification);
-      newMap.set(event, verification);
-      return { eventVerification: newMap };
-    });
-  },
+    setEventVerification: (event: string, verification: EventVerification) => {
+      set((state) => {
+        const newMap = new Map(state.eventVerification);
+        newMap.set(event, verification);
+        return { eventVerification: newMap };
+      });
+    },
 
-  setMappingVerification: (mapping: string, verification: EventVerification) => {
-    set((state) => {
-      const newMap = new Map(state.mappingVerification);
-      newMap.set(mapping, verification);
-      return { mappingVerification: newMap };
-    });
-  },
+    setMappingVerification: (
+      mapping: string,
+      verification: EventVerification,
+    ) => {
+      set((state) => {
+        const newMap = new Map(state.mappingVerification);
+        newMap.set(mapping, verification);
+        return { mappingVerification: newMap };
+      });
+    },
 
-  setValidationError: (error: string | null) => set({ validationError: error }),
+    setValidationError: (error: string | null) =>
+      set({ validationError: error }),
 
-  reset: () => {
-    set({
-      ...initialState,
-      eventVerification: new Map(),
-      mappingVerification: new Map(),
-    });
-  },
+    reset: () => {
+      set({
+        ...initialState,
+        eventVerification: new Map(),
+        mappingVerification: new Map(),
+      });
+    },
 
-  canProceedToStep: (step: ConfigStep) => {
-    const { selectedPixelId, form } = get();
+    canProceedToStep: (step: ConfigStep) => {
+      const { selectedPixelId, form } = get();
 
-    switch (step) {
-      case 1:
-        return true;
-      case 2:
-        return !!selectedPixelId;
-      case 3:
-        return !!selectedPixelId && !!form.businessType;
-      default:
-        return false;
-    }
-  },
+      switch (step) {
+        case 1:
+          return true;
+        case 2:
+          return !!selectedPixelId;
+        case 3:
+          return !!selectedPixelId && !!form.businessType;
+        default:
+          return false;
+      }
+    },
 
-  getSelectedPixel: () => {
-    const { pixels, selectedPixelId } = get();
-    return pixels.find((p) => p.id === selectedPixelId);
-  },
-}));
+    getSelectedPixel: () => {
+      const { pixels, selectedPixelId } = get();
+      return pixels.find((p) => p.id === selectedPixelId);
+    },
+  }),
+);
 
 /**
  * Main hook for Facebook configuration wizard
@@ -272,6 +291,91 @@ export function useFacebookConfig() {
     enabled: store.isOpen && !!store.accountId,
   });
 
+  // Fetch pixels when drawer opens
+  const pixelsQuery = useQuery({
+    queryKey: ["facebook-pixels", store.accountId],
+    queryFn: () => fetchAccountPixels(store.accountId!),
+    enabled: store.isOpen && !!store.accountId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Update store when pixels load
+  useEffect(() => {
+    if (pixelsQuery.data) {
+      store.setPixels(pixelsQuery.data);
+      store.setLoading(false);
+    }
+    if (pixelsQuery.isLoading) {
+      store.setLoading(true);
+    }
+    if (pixelsQuery.isError) {
+      store.setLoading(false);
+      store.setValidationError("Failed to load pixels. Please try again.");
+    }
+  }, [pixelsQuery.data, pixelsQuery.isLoading, pixelsQuery.isError]);
+
+  // Fetch events when pixel is selected
+  const eventsQuery = useQuery({
+    queryKey: ["pixel-events", store.accountId, store.selectedPixelId],
+    queryFn: () => fetchPixelEvents(store.accountId!, store.selectedPixelId!),
+    enabled: !!store.accountId && !!store.selectedPixelId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Update store when events load
+  useEffect(() => {
+    if (eventsQuery.data) {
+      const events = eventsQuery.data.map((e) => ({
+        value: e.value,
+        label: e.label,
+        count: e.count,
+        isCustom: e.is_custom,
+      }));
+      store.setPixelEvents(events);
+      store.setLoadingEvents(false);
+    }
+    if (eventsQuery.isLoading && store.selectedPixelId) {
+      store.setLoadingEvents(true);
+    }
+    if (eventsQuery.isError) {
+      store.setLoadingEvents(false);
+    }
+  }, [
+    eventsQuery.data,
+    eventsQuery.isLoading,
+    eventsQuery.isError,
+    store.selectedPixelId,
+  ]);
+
+  // Force refresh - clears data and refetches fresh
+  const handleForceRefresh = useCallback(async () => {
+    if (!store.accountId) return;
+
+    // Show loading spinner in body
+    store.setLoading(true);
+
+    // Clear current data while loading
+    store.setPixels([]);
+    if (store.selectedPixelId) {
+      store.setPixelEvents([]);
+    }
+
+    try {
+      // Refetch and wait for completion
+      await queryClient.refetchQueries({
+        queryKey: ["facebook-pixels", store.accountId],
+      });
+
+      if (store.selectedPixelId) {
+        await queryClient.refetchQueries({
+          queryKey: ["pixel-events", store.accountId, store.selectedPixelId],
+        });
+      }
+    } finally {
+      store.setLoading(false);
+    }
+  }, [store, queryClient]);
+
   // Mutation for saving settings
   const saveMutation = useMutation({
     mutationFn: async (data: FacebookSettingsUpdate) => {
@@ -286,7 +390,7 @@ export function useFacebookConfig() {
     },
     onError: (error) => {
       store.setValidationError(
-        error instanceof Error ? error.message : "Failed to save settings"
+        error instanceof Error ? error.message : "Failed to save settings",
       );
     },
   });
@@ -355,7 +459,9 @@ export function useFacebookConfig() {
     const selectedPixel = getSelectedPixel();
 
     const stepKey =
-      form.businessType === "LEAD_GEN" ? "fb_lead_events" : "fb_ecommerce_events";
+      form.businessType === "LEAD_GEN"
+        ? "fb_lead_events"
+        : "fb_ecommerce_events";
 
     const updateData: FacebookSettingsUpdate = {
       step_key: stepKey,
@@ -400,6 +506,10 @@ export function useFacebookConfig() {
     onboardingData,
     loadingSteps,
     refetchSteps,
+
+    // Refresh functionality
+    isRefreshing: pixelsQuery.isFetching || eventsQuery.isFetching,
+    handleForceRefresh,
 
     // Save methods
     saveStep,

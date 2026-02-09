@@ -5,7 +5,7 @@ import crypto from "crypto";
 // Facebook OAuth configuration
 const FB_APP_ID = process.env.FACEBOOK_APP_ID!;
 const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET!;
-const FB_API_VERSION = process.env.FACEBOOK_GRAPH_API_VERSION || "v24.0";
+const FB_API_VERSION = process.env.NEXT_PUBLIC_FACEBOOK_API_VERSION || "v24.0";
 const SESSION_SECRET = process.env.SESSION_SECRET!;
 
 // Cookie settings

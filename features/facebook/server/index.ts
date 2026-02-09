@@ -4,11 +4,15 @@ export {
   clearFacebookToken,
   getFacebookSettings,
   updateFacebookSettings,
+  fetchAccountPixels,
+  fetchPixelEvents,
   type AccountResponse,
   type FacebookSettingsResponse,
   type FacebookSettingsUpdate,
   type LeadConfig,
   type EcommerceConfig,
+  type FacebookPixel,
+  type PixelEvent,
 } from "./actions";
 
 export {

@@ -31,6 +31,8 @@ export function FacebookConfigDrawer({ accountId }: FacebookConfigDrawerProps) {
     saving,
     saveConfiguration,
     pixelEvents,
+    isRefreshing,
+    handleForceRefresh,
   } = useFacebookConfig();
 
   const canProceedStep1 = !!selectedPixelId && !loadingEvents;
@@ -65,6 +67,8 @@ export function FacebookConfigDrawer({ accountId }: FacebookConfigDrawerProps) {
           title="Account Configuration"
           description="Configure your conversion tracking"
           onClose={close}
+          onRefresh={handleForceRefresh}
+          isRefreshing={isRefreshing}
           steps={[
             { id: 1, label: "Pixel" },
             { id: 2, label: "Business Type" },

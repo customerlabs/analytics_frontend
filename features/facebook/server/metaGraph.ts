@@ -2,7 +2,7 @@ import crypto from "crypto";
 
 const FB_APP_ID = process.env.FACEBOOK_APP_ID!;
 const FB_APP_SECRET = process.env.FACEBOOK_APP_SECRET!;
-const FB_API_VERSION = process.env.FACEBOOK_GRAPH_API_VERSION || "v24.0";
+const FB_API_VERSION = process.env.NEXT_PUBLIC_FACEBOOK_API_VERSION || "v24.0";
 
 const GRAPH_API_BASE = `https://graph.facebook.com/${FB_API_VERSION}`;
 

@@ -105,7 +105,7 @@ export function FacebookConfigDrawer({ accountId }: FacebookConfigDrawerProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-border bg-muted flex-shrink-0 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-border bg-muted shrink-0 flex items-center justify-between">
           <div>
             {step > 1 && (
               <Button variant="outline" onClick={prevStep} disabled={loading || saving}>

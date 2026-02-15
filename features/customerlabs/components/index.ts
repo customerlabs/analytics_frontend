@@ -8,3 +8,6 @@ export * from "./shared";
 
 // Step components
 export * from "./steps";
+
+// Shopify Import
+export * from "./shopify";

@@ -262,6 +262,12 @@ export interface PixelEvent {
   is_custom: boolean;
 }
 
+export interface ActionTypeResponse {
+  action_type: string;
+  conversions: number;
+  is_custom: boolean;
+}
+
 /**
  * Fetch pixels for an account from the backend (calls Facebook Graph API)
  */
@@ -294,6 +300,25 @@ export async function fetchPixelEvents(
 
   if (!response?.result) {
     throw new Error("Failed to fetch pixel events");
+  }
+
+  return response.result;
+}
+
+/**
+ * Fetch action types from the backend (calls Facebook Graph API insights)
+ */
+export async function fetchActionTypes(
+  accountId: string
+): Promise<ActionTypeResponse[]> {
+  const response = await fetchFromBackendAPI<
+    CommonResponse<ActionTypeResponse[]>
+  >(`/api/v1/facebook/action-types?account_id=${accountId}`, {
+    method: "GET",
+  });
+
+  if (!response?.result) {
+    throw new Error("Failed to fetch action types");
   }
 
   return response.result;

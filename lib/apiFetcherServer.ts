@@ -14,6 +14,15 @@ interface FetchOptions {
   accessToken?: string; // Optional access token to avoid redundant auth() calls
 }
 
+type CustomerLabsAuthType = 'token' | 'api_key';
+
+interface CustomerLabsFetchOptions {
+  authType: CustomerLabsAuthType;
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  body?: unknown;
+  accessToken?: string; // Optional override for token auth
+}
+
 /**
  * Fetches data from internal API with smart caching
  * @param endpoint - API endpoint to fetch from
@@ -155,4 +164,65 @@ export async function fetchFromBackendAPI<T>(
     ...options,
     useBackendAPI: true,
   });
+}
+
+/**
+ * Convenience function for CustomerLabs API calls with flexible authentication
+ * @param endpoint - CustomerLabs API endpoint (e.g., '/morning-coffee/sources/list')
+ * @param options - Request options including auth type ('token' or 'api_key')
+ * @returns Typed API response
+ */
+export async function fetchFromCustomerLabsAPI<T>(
+  endpoint: string,
+  options: CustomerLabsFetchOptions
+): Promise<T> {
+  const { authType, accessToken, method = 'GET', body } = options;
+
+  const baseUrl = process.env.CUSTOMERLABS_APP_API_URL;
+  if (!baseUrl) {
+    throw new Error('CUSTOMERLABS_APP_API_URL environment variable is not set');
+  }
+
+  const url = `${baseUrl}${endpoint}`;
+
+  // Build headers based on auth type
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (authType === 'api_key') {
+    const apiKey = process.env.CUSTOMERLABS_APP_API_KEY;
+    if (!apiKey) {
+      throw new Error('CUSTOMERLABS_APP_API_KEY environment variable is not set');
+    }
+    headers['API-KEY'] = apiKey;
+  } else {
+    // Token auth - get from session or use provided token
+    let token = accessToken;
+    if (!token) {
+      const session = await getSession();
+      if (!session?.accessToken) {
+        throw new APIError('No access token available', 401, endpoint, 'Unauthorized');
+      }
+      token = session.accessToken;
+    }
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+    cache: 'no-store',
+  });
+
+  // Handle empty responses (204 No Content)
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  // CustomerLabs API always returns JSON with { success: boolean, data/error: ... }
+  // Return the actual response for both success and error cases
+  // so the caller can check response.success
+  return response.json();
 }

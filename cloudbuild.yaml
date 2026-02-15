@@ -14,13 +14,17 @@ steps:
       - '--all-tags'
       - 'us-central1-docker.pkg.dev/${PROJECT_ID}/analytics/analytics-frontend'
 
-  - name: 'gcr.io/cloud-builders/gke-deploy'
+  # Deploy to GKE - update image only, preserve existing deployment config
+  - name: 'gcr.io/cloud-builders/kubectl'
     args:
-      - 'run'
-      - '--image=us-central1-docker.pkg.dev/${PROJECT_ID}/analytics/analytics-frontend:${SHORT_SHA}'
-      - '--cluster=analytics-cluster'
-      - '--location=us-central1'
+      - 'set'
+      - 'image'
+      - 'deployment/analytics-frontend'
+      - 'nextjs=us-central1-docker.pkg.dev/${PROJECT_ID}/analytics/analytics-frontend:${SHORT_SHA}'
       - '--namespace=analytics'
+    env:
+      - 'CLOUDSDK_COMPUTE_REGION=us-central1'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=analytics-cluster'
 
 options:
   logging: CLOUD_LOGGING_ONLY

@@ -1,8 +1,6 @@
 "use client";
 
-import { Users, ShoppingBag, Check, Info, Package } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { Users, ShoppingBag, Info } from "lucide-react";
 import { useFacebookConfig } from "../../../hooks/useFacebookConfig";
 import { EventDropdown } from "../shared/EventDropdown";
 import { ActionTypeMapping } from "../shared/ActionTypeMapping";
@@ -15,7 +13,6 @@ export function EventsConfigStep() {
     loadingEvents,
     updateLeadConfig,
     updateEcommerceConfig,
-    updateProductsConfig,
     eventVerification,
     mappingVerification,
     getSelectedPixel,
@@ -166,46 +163,6 @@ export function EventsConfigStep() {
                 Customers&quot; goal to configure those events separately.
               </div>
             </div>
-          </div>
-
-          {/* Product Insights Toggle */}
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mt-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
-                  <Package className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">
-                    Product-Level Insights
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Enable to collect performance data broken down by individual
-                    products. Useful for identifying top-performing products in
-                    your catalog.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="product-insights"
-                  checked={form.products.enabled}
-                  onCheckedChange={(checked: boolean | "indeterminate") =>
-                    updateProductsConfig({ enabled: checked === true })
-                  }
-                />
-                <Label htmlFor="product-insights" className="sr-only">
-                  Enable product insights
-                </Label>
-              </div>
-            </div>
-            {form.products.enabled && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-indigo-700 bg-indigo-100 px-3 py-2 rounded">
-                <Check className="w-4 h-4" />
-                Product insights will be collected during the nightly pipeline
-                run
-              </div>
-            )}
           </div>
         </div>
       )}

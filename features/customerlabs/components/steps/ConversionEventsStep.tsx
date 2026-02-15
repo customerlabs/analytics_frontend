@@ -42,30 +42,43 @@ export function ConversionEventsStep({
   ] as ConversionEventsConfig | undefined;
 
   const events = useMemo(() => eventsData?.events ?? [], [eventsData?.events]);
-  
-  // Extract conversionsConfig from new backend format
+
+  // Extract conversionsConfig from recommendations
   const conversionsConfig = useMemo(
     () => recommendationsData?.conversionsConfig ?? null,
     [recommendationsData?.conversionsConfig]
   );
 
   // Build source fields from the AI recommendation field mappings
-  // This replaces the separate useSourceFields hook since that endpoint doesn't exist
+  // Include both sourceField and fallback values so they appear in dropdowns
   // Deduplicate by field_name to prevent React key warnings
   const sourceFields: SourceField[] = useMemo(() => {
     if (!conversionsConfig?.fields) return [];
     const seen = new Set<string>();
-    return Object.entries(conversionsConfig.fields)
-      .map(([fieldName, mapping]) => ({
-        field_name: mapping.sourceField || fieldName,
-        field_type: "STRING",
-        occurrence_count: 1,
-      }))
-      .filter((field) => {
-        if (seen.has(field.field_name)) return false;
-        seen.add(field.field_name);
-        return true;
-      });
+    const fields: SourceField[] = [];
+
+    Object.entries(conversionsConfig.fields).forEach(([_fieldName, mapping]) => {
+      // Add source field
+      if (mapping.sourceField && !seen.has(mapping.sourceField)) {
+        seen.add(mapping.sourceField);
+        fields.push({
+          field_name: mapping.sourceField,
+          field_type: "STRING",
+          occurrence_count: 1,
+        });
+      }
+      // Also add fallback field if it exists
+      if (mapping.fallback && !seen.has(mapping.fallback)) {
+        seen.add(mapping.fallback);
+        fields.push({
+          field_name: mapping.fallback,
+          field_type: "STRING",
+          occurrence_count: 1,
+        });
+      }
+    });
+
+    return fields;
   }, [conversionsConfig]);
 
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
@@ -98,8 +111,9 @@ export function ConversionEventsStep({
         const aiMapping = conversionsConfig.fields[target.field];
         const suggestedSource = aiMapping?.sourceField ?? "";
         const suggestedFallback = aiMapping?.fallback ?? "";
-        const suggestedDefault = aiMapping?.default !== undefined 
-          ? String(aiMapping.default) 
+        // Only convert to string if value is not null/undefined
+        const suggestedDefault = aiMapping?.default != null
+          ? String(aiMapping.default)
           : "";
 
         return {
@@ -123,16 +137,18 @@ export function ConversionEventsStep({
   // Initialize state when data becomes available
   useEffect(() => {
     if (isInitializedRef.current || isLoading) return;
-    
+
+    // Only proceed if we have data to initialize with
+    const hasData = existingData || (conversionsConfig && events.length > 0);
+    if (!hasData) return;
+
     const { events: initialEvents, mappings: initialMappings } = computeInitialState();
-    
-    if (existingData || (conversionsConfig && events.length > 0)) {
-      queueMicrotask(() => {
-        setSelectedEvents(initialEvents);
-        setFieldMappings(initialMappings);
-      });
-    }
-    
+
+    queueMicrotask(() => {
+      setSelectedEvents(initialEvents);
+      setFieldMappings(initialMappings);
+    });
+
     isInitializedRef.current = true;
   }, [isLoading, computeInitialState, existingData, conversionsConfig, events]);
 

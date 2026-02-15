@@ -212,7 +212,7 @@ export function FacebookAuthorizeModal({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 py-6 overflow-y-auto">
+        <div className="flex-1 px-6 py-6 overflow-y-auto">
           {state === "idle" && (
             <div className="rounded-lg border border-dashed border-border bg-muted/20 p-6">
               <div className="flex items-start gap-4">

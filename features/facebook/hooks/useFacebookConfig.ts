@@ -8,6 +8,7 @@ import {
   updateFacebookSettings,
   fetchAccountPixels,
   fetchPixelEvents,
+  fetchActionTypes,
   type FacebookSettingsUpdate,
 } from "../server";
 import type {
@@ -346,6 +347,26 @@ export function useFacebookConfig() {
     eventsQuery.isError,
     store.selectedPixelId,
   ]);
+
+  // Fetch action types when pixel is selected
+  const actionTypesQuery = useQuery({
+    queryKey: ["action-types", store.accountId],
+    queryFn: () => fetchActionTypes(store.accountId!),
+    enabled: !!store.accountId && !!store.selectedPixelId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Update store when action types load
+  useEffect(() => {
+    if (actionTypesQuery.data) {
+      const actionTypes = actionTypesQuery.data.map((a) => ({
+        actionType: a.action_type,
+        conversions: a.conversions,
+        isCustom: a.is_custom,
+      }));
+      store.setConversionEvents(actionTypes);
+    }
+  }, [actionTypesQuery.data]);
 
   // Force refresh - clears data and refetches fresh
   const handleForceRefresh = useCallback(async () => {

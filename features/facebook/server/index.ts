@@ -6,6 +6,7 @@ export {
   updateFacebookSettings,
   fetchAccountPixels,
   fetchPixelEvents,
+  fetchActionTypes,
   type AccountResponse,
   type FacebookSettingsResponse,
   type FacebookSettingsUpdate,
@@ -13,6 +14,7 @@ export {
   type EcommerceConfig,
   type FacebookPixel,
   type PixelEvent,
+  type ActionTypeResponse,
 } from "./actions";
 
 export {

@@ -6,6 +6,8 @@ export {
 
 export { useWorkspaceAccounts } from "./useWorkspaceAccounts";
 
+export { useAccount } from "./useAccount";
+
 export {
   useOnboardingSteps,
   type Platform,

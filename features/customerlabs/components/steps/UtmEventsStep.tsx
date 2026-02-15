@@ -90,19 +90,19 @@ export function UtmEventsStep({
   const isInitializedRef = useRef(false);
 
   // Initialize state when data becomes available
-  // Using queueMicrotask to batch the updates and satisfy the linter
   useEffect(() => {
     if (isInitializedRef.current || isLoading) return;
-    
+
+    // Only proceed if we have data to initialize with
+    const hasData = existingData || utmFields.length > 0;
+    if (!hasData) return;
+
     const initialMappings = computeInitialState();
-    
-    // Only update if we have data to set
-    if (existingData || utmFields.length > 0) {
-      queueMicrotask(() => {
-        setFieldMappings(initialMappings);
-      });
-    }
-    
+
+    queueMicrotask(() => {
+      setFieldMappings(initialMappings);
+    });
+
     isInitializedRef.current = true;
   }, [isLoading, computeInitialState, existingData, utmFields]);
 

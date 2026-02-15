@@ -175,6 +175,8 @@ export function AccountTemplateGrid({
                   template={template}
                   selected={selectedId === template.id}
                   onSelect={onSelect}
+                  showDescription={true}
+                  layout="horizontal"
                   {...cardProps}
                 />
               ))}

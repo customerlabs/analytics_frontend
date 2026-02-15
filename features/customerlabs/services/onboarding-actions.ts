@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { fetchFromBackendAPI } from "@/lib/apiFetcherServer";
 import {
   StepKey,
@@ -10,6 +11,20 @@ import {
   type CustomerlabsSettingsUpdate,
   type OnboardingDataResponse,
 } from "../types/onboarding";
+
+// =============================================================================
+// Zod Validation Schemas
+// =============================================================================
+
+const AccountIdSchema = z.string().min(1, "Account ID is required");
+
+const StepKeySchema = z.enum([
+  StepKey.DATA_AVAILABILITY,
+  StepKey.BASIC_ACCOUNT,
+  StepKey.CONVERSION_EVENTS,
+  StepKey.PRODUCT_EVENTS,
+  StepKey.UTM_EVENTS,
+]);
 
 // Base paths for CustomerLabs API
 const CUSTOMERLABS_BASE = "/api/v1/customerlabs";
@@ -27,6 +42,8 @@ const SETTINGS_BASE = `${CUSTOMERLABS_BASE}/settings`;
 export async function getSettings(
   accountId: string,
 ): Promise<CustomerlabsSettings> {
+  AccountIdSchema.parse(accountId);
+
   return fetchFromBackendAPI<CustomerlabsSettings>(
     `${SETTINGS_BASE}?account_id=${encodeURIComponent(accountId)}`,
   );
@@ -40,6 +57,8 @@ export async function updateSettings(
   accountId: string,
   data: CustomerlabsSettingsUpdate,
 ): Promise<CustomerlabsSettings> {
+  AccountIdSchema.parse(accountId);
+
   return fetchFromBackendAPI<CustomerlabsSettings>(
     `${SETTINGS_BASE}?account_id=${encodeURIComponent(accountId)}`,
     {
@@ -63,6 +82,9 @@ export async function skipOnboardingStep(
   accountId: string,
   skipType: "permanent" | "temporary" = "temporary",
 ): Promise<SaveStepResponse> {
+  StepKeySchema.parse(stepKey);
+  AccountIdSchema.parse(accountId);
+
   return fetchFromBackendAPI<SaveStepResponse>(
     `${ONBOARDING_BASE}/step/${stepKey}/skip?account_id=${encodeURIComponent(accountId)}`,
     {
@@ -85,10 +107,17 @@ export async function skipOnboardingStep(
  */
 export async function getRecommendations(
   accountId: string,
-): Promise<RecommendationsResponse> {
-  return fetchFromBackendAPI<RecommendationsResponse>(
+): Promise<RecommendationsResponse | null> {
+  AccountIdSchema.parse(accountId);
+
+  interface CommonResponse<R> {
+    success: boolean;
+    result: R | null;
+  }
+  const response = await fetchFromBackendAPI<CommonResponse<RecommendationsResponse>>(
     `${CUSTOMERLABS_BASE}/recommendations?account_id=${encodeURIComponent(accountId)}`,
   );
+  return response?.result ?? null;
 }
 
 /**
@@ -97,6 +126,8 @@ export async function getRecommendations(
 export async function getDataAvailability(
   accountId: string,
 ): Promise<DataAvailabilityData> {
+  AccountIdSchema.parse(accountId);
+
   return fetchFromBackendAPI<DataAvailabilityData>(
     `${ONBOARDING_BASE}/step/${StepKey.DATA_AVAILABILITY}?account_id=${encodeURIComponent(accountId)}`,
   );
@@ -108,6 +139,8 @@ export async function getDataAvailability(
 export async function resetOnboarding(
   accountId: string,
 ): Promise<OnboardingDataResponse> {
+  AccountIdSchema.parse(accountId);
+
   return fetchFromBackendAPI<OnboardingDataResponse>(
     `${ONBOARDING_BASE}/reset?account_id=${encodeURIComponent(accountId)}`,
     {
@@ -123,6 +156,9 @@ export async function getStepData<T>(
   accountId: string,
   stepKey: StepKey,
 ): Promise<T | null> {
+  AccountIdSchema.parse(accountId);
+  StepKeySchema.parse(stepKey);
+
   interface CommonResponse<R> {
     success: boolean;
     result: R | null;
@@ -139,6 +175,8 @@ export async function getStepData<T>(
 export async function getAvailableEvents(
   accountId: string,
 ): Promise<{ events: string[]; total: number } | null> {
+  AccountIdSchema.parse(accountId);
+
   interface CommonResponse<R> {
     success: boolean;
     result: R | null;
